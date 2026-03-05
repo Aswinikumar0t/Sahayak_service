@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahayak - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+        }
+
+        .left-section {
+            width: 60%;
+            background: linear-gradient(135deg, #4e73df, #1cc88a);
+            color: white;
+            padding: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .left-section h1 {
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+
+        .left-section p {
+            font-size: 18px;
+            line-height: 1.6;
+            max-width: 500px;
+        }
+
+        .right-section {
+            width: 40%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f8f9fc;
+        }
+
+        .login-box {
+            width: 350px;
+            background: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            width: 60px;
+            margin-bottom: 10px;
+        }
+
+        .logo h2 {
+            font-size: 24px;
+            color: #4e73df;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background-color: #4e73df;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .login-box button:hover {
+            background-color: #2e59d9;
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .forgot-password a {
+            text-decoration: none;
+            color: #858796;
+            font-size: 14px;
+        }
+
+        .forgot-password a:hover {
+            color: #4e73df;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+            .left-section, .right-section {
+                width: 100%;
+                height: 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="left-section">
+        <h1>Welcome to Sahayak</h1>
+        <p>
+            Sahayak is your complete service management solution. 
+            Manage bookings, monitor services, handle staff operations, 
+            and streamline your business efficiently from one powerful platform.
+        </p>
+    </div>
+
+    <div class="right-section">
+        <div class="login-box">
+
+            <div class="logo">
+                <img src="logo.png" alt="Logo">
+                <h2>Sahayak</h2>
+            </div>
+
+            <form method="POST">
+                <input type="text" placeholder="Username" required>
+                <input type="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+
+            <div class="forgot-password">
+                <a href="#">Forgot Password?</a>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
