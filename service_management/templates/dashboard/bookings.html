@@ -1,0 +1,819 @@
+
+{% extends 'layout/base.html' %}
+{% block title %}Bookings | ServiceMS{% endblock %}
+{% block content %}
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --surface2: #eaf2fb;
+        --border: #d0e3f5;
+        --accent: #1e88e5;
+        --accent2: #1565c0;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --text: #1a1a2e;
+        --muted: #888888;
+        --font-head: 'Poppins', sans-serif;
+        --font-body: 'DM Sans', sans-serif;
+    }
+
+    body {
+        background: var(--bg);
+        font-family: var(--font-body);
+        color: var(--text);
+    }
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+        margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 2rem;
+    }
+
+    .page-header p {
+        color: var(--muted);
+        margin-top: 6px;
+        font-size: 14px;
+    }
+
+    /* ===== STAT CARDS ===== */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 24px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.06);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(30,136,229,0.12);
+    }
+
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .stat-icon.blue   { background: rgba(30,136,229,0.12); }
+    .stat-icon.green  { background: rgba(34,197,94,0.12);  }
+    .stat-icon.yellow { background: rgba(245,158,11,0.12); }
+    .stat-icon.red    { background: rgba(239,68,68,0.12);  }
+
+    .stat-label {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .stat-value {
+        font-family: var(--font-head);
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-value.blue   { color: var(--accent); }
+    .stat-value.green  { color: var(--success); }
+    .stat-value.yellow { color: var(--warning); }
+    .stat-value.red    { color: var(--danger);  }
+
+    /* ===== TABS ===== */
+    .tab-wrapper {
+        display: flex;
+        gap: 0;
+        margin-bottom: 24px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 6px;
+        width: fit-content;
+        box-shadow: 0 2px 8px rgba(30,136,229,0.08);
+    }
+
+    .tab-btn {
+        padding: 10px 24px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        font-family: var(--font-body);
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+        background: var(--surface2);
+        color: var(--accent);
+    }
+
+    .tab-btn.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(30,136,229,0.3);
+    }
+
+    /* ===== TAB CONTENT ===== */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ===== CARD ===== */
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.06);
+    }
+
+    .card-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface2);
+        border-radius: 14px 14px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 16px;
+    }
+
+    .card-body { padding: 20px 24px; }
+
+    /* ===== SEARCH + FILTER ===== */
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .search-wrapper {
+        flex: 1;
+        position: relative;
+        min-width: 200px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: #bbb;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 10px 14px 10px 42px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        background: var(--bg);
+    }
+
+    .search-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(30,136,229,0.1);
+        background: white;
+    }
+
+    .filter-select {
+        padding: 10px 16px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        outline: none;
+        background: var(--bg);
+        color: var(--text);
+        cursor: pointer;
+        transition: border-color 0.2s;
+        min-width: 150px;
+    }
+
+    .filter-select:focus { border-color: var(--accent); }
+
+    /* ===== TABLE ===== */
+    .table-wrapper { overflow-x: auto; }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    thead { background: var(--surface2); }
+
+    thead th {
+        padding: 12px 16px;
+        text-align: left;
+        font-family: var(--font-head);
+        font-size: 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+        border-bottom: 1px solid #f0f4f8;
+        transition: background 0.15s;
+    }
+
+    tbody tr:hover { background: var(--surface2); }
+
+    tbody td {
+        padding: 14px 16px;
+        color: var(--text);
+        vertical-align: middle;
+    }
+
+    /* ===== BOOKING ID ===== */
+    .booking-id {
+        font-weight: 700;
+        color: var(--accent);
+        font-size: 13px;
+    }
+
+    /* ===== CUSTOMER CELL ===== */
+    .customer-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    .name-text  { font-weight: 600; font-size: 14px; }
+    .email-text { font-size: 12px; color: var(--muted); }
+
+    /* ===== STATUS BADGE ===== */
+    .badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-pending   { background: rgba(245,158,11,0.12); color: #d97706; }
+    .badge-ongoing   { background: rgba(59,130,246,0.12); color: #2563eb; }
+    .badge-completed { background: rgba(34,197,94,0.12);  color: #16a34a; }
+    .badge-cancelled { background: rgba(239,68,68,0.12);  color: #dc2626; }
+
+    /* ===== ACTION BUTTONS ===== */
+    .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .btn {
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: var(--font-body);
+        border: 1px solid;
+        transition: 0.2s;
+    }
+
+    .btn-view     { background: var(--surface2); color: var(--accent);  border-color: var(--border); }
+    .btn-assign   { background: rgba(59,130,246,0.1); color: #2563eb;   border-color: rgba(59,130,246,0.3); }
+    .btn-complete { background: rgba(34,197,94,0.1);  color: #16a34a;   border-color: rgba(34,197,94,0.3); }
+    .btn-cancel   { background: rgba(239,68,68,0.1);  color: #dc2626;   border-color: rgba(239,68,68,0.3); }
+
+    .btn-view:hover     { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-assign:hover   { background: #3b82f6; color: white; border-color: #3b82f6; }
+    .btn-complete:hover { background: #22c55e; color: white; border-color: #22c55e; }
+    .btn-cancel:hover   { background: #ef4444; color: white; border-color: #ef4444; }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <h1>📅 Bookings</h1>
+    <p>Manage and track all customer bookings</p>
+</div>
+
+<!-- Stat Cards -->
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-icon blue">📋</div>
+        <div>
+            <div class="stat-label">Total Bookings</div>
+            <div class="stat-value blue">{{ total_bookings|default:"38" }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon yellow">⏳</div>
+        <div>
+            <div class="stat-label">Pending</div>
+            <div class="stat-value yellow">{{ pending_bookings|default:"10" }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">✅</div>
+        <div>
+            <div class="stat-label">Completed</div>
+            <div class="stat-value green">{{ completed_bookings|default:"24" }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon red">❌</div>
+        <div>
+            <div class="stat-label">Cancelled</div>
+            <div class="stat-value red">{{ cancelled_bookings|default:"4" }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="tab-wrapper">
+    <button class="tab-btn active" onclick="switchTab('all', event)">📋 All Bookings</button>
+    <button class="tab-btn" onclick="switchTab('pending', event)">⏳ Pending</button>
+    <button class="tab-btn" onclick="switchTab('ongoing', event)">🔄 Ongoing</button>
+    <button class="tab-btn" onclick="switchTab('completed', event)">✅ Completed</button>
+    <button class="tab-btn" onclick="switchTab('cancelled', event)">❌ Cancelled</button>
+</div>
+
+<!-- ===== ALL BOOKINGS TAB ===== -->
+<div class="tab-content active" id="tab-all">
+    <div class="card">
+        <div class="card-header">
+            <h3>All Bookings</h3>
+        </div>
+        <div class="card-body">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input"
+                           placeholder="Search by customer name, service or booking ID..."
+                           onkeyup="filterTable('allTable', this.value)">
+                </div>
+                <select class="filter-select" onchange="filterByStatus('allTable', this.value)">
+                    <option value="">All Status</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="ongoing">🔄 Ongoing</option>
+                    <option value="completed">✅ Completed</option>
+                    <option value="cancelled">❌ Cancelled</option>
+                </select>
+                <select class="filter-select" onchange="filterTable('allTable', this.value)">
+                    <option value="">All Services</option>
+                    <option>Electrician</option>
+                    <option>Plumber</option>
+                    <option>Carpenter</option>
+                    <option>Painter</option>
+                </select>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="allTable">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer</th>
+                            <th>Service</th>
+                            <th>Partner</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if bookings %}
+                            {% for booking in bookings %}
+                            <tr data-status="{{ booking.status }}">
+                                <td><span class="booking-id">#{{ booking.id }}</span></td>
+                                <td>
+                                    <div class="customer-cell">
+                                        <div class="avatar">{{ booking.customer|slice:":2"|upper }}</div>
+                                        <div>
+                                            <div class="name-text">{{ booking.customer }}</div>
+                                            <div class="email-text">{{ booking.phone }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ booking.service }}</td>
+                                <td>{{ booking.partner }}</td>
+                                <td>{{ booking.date|date:"d M Y" }}</td>
+                                <td>₹{{ booking.amount }}</td>
+                                <td><span class="badge badge-{{ booking.status }}">{{ booking.status|capfirst }}</span></td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn btn-view">View</button>
+                                        <button class="btn btn-assign">Assign</button>
+                                        <button class="btn btn-complete">Complete</button>
+                                        <button class="btn btn-cancel">Cancel</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <!-- Sample rows -->
+                            <tr data-status="pending">
+                                <td><span class="booking-id">#1001</span></td>
+                                <td>
+                                    <div class="customer-cell">
+                                        <div class="avatar">AN</div>
+                                        <div>
+                                            <div class="name-text">Anjali Nair</div>
+                                            <div class="email-text">9876543210</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Electrician</td>
+                                <td>TechCare Solutions</td>
+                                <td>12 Mar 2025</td>
+                                <td>₹500</td>
+                                <td><span class="badge badge-pending">Pending</span></td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn btn-view">View</button>
+                                        <button class="btn btn-assign">Assign</button>
+                                        <button class="btn btn-complete">Complete</button>
+                                        <button class="btn btn-cancel">Cancel</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr data-status="ongoing">
+                                <td><span class="booking-id">#1002</span></td>
+                                <td>
+                                    <div class="customer-cell">
+                                        <div class="avatar">RS</div>
+                                        <div>
+                                            <div class="name-text">Rahul Sharma</div>
+                                            <div class="email-text">9812345678</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Plumber</td>
+                                <td>HomeServe India</td>
+                                <td>11 Mar 2025</td>
+                                <td>₹750</td>
+                                <td><span class="badge badge-ongoing">Ongoing</span></td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn btn-view">View</button>
+                                        <button class="btn btn-assign">Assign</button>
+                                        <button class="btn btn-complete">Complete</button>
+                                        <button class="btn btn-cancel">Cancel</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr data-status="completed">
+                                <td><span class="booking-id">#1003</span></td>
+                                <td>
+                                    <div class="customer-cell">
+                                        <div class="avatar">PK</div>
+                                        <div>
+                                            <div class="name-text">Priya Kumar</div>
+                                            <div class="email-text">9845612345</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Carpenter</td>
+                                <td>Ramesh Kumar</td>
+                                <td>10 Mar 2025</td>
+                                <td>₹1200</td>
+                                <td><span class="badge badge-completed">Completed</span></td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn btn-view">View</button>
+                                        <button class="btn btn-assign">Assign</button>
+                                        <button class="btn btn-complete">Complete</button>
+                                        <button class="btn btn-cancel">Cancel</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr data-status="cancelled">
+                                <td><span class="booking-id">#1004</span></td>
+                                <td>
+                                    <div class="customer-cell">
+                                        <div class="avatar">MV</div>
+                                        <div>
+                                            <div class="name-text">Mohan Verma</div>
+                                            <div class="email-text">9867543210</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Painter</td>
+                                <td>BuildFix Corp</td>
+                                <td>09 Mar 2025</td>
+                                <td>₹2000</td>
+                                <td><span class="badge badge-cancelled">Cancelled</span></td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn btn-view">View</button>
+                                        <button class="btn btn-assign">Assign</button>
+                                        <button class="btn btn-complete">Complete</button>
+                                        <button class="btn btn-cancel">Cancel</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PENDING TAB ===== -->
+<div class="tab-content" id="tab-pending">
+    <div class="card">
+        <div class="card-header"><h3>⏳ Pending Bookings</h3></div>
+        <div class="card-body">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" placeholder="Search pending bookings...">
+                </div>
+                <select class="filter-select">
+                    <option value="">All Services</option>
+                    <option>Electrician</option>
+                    <option>Plumber</option>
+                    <option>Carpenter</option>
+                    <option>Painter</option>
+                </select>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer</th>
+                            <th>Service</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="booking-id">#1001</span></td>
+                            <td>
+                                <div class="customer-cell">
+                                    <div class="avatar">AN</div>
+                                    <div>
+                                        <div class="name-text">Anjali Nair</div>
+                                        <div class="email-text">9876543210</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Electrician</td>
+                            <td>12 Mar 2025</td>
+                            <td>₹500</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-view">View</button>
+                                    <button class="btn btn-assign">Assign Partner</button>
+                                    <button class="btn btn-cancel">Cancel</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== ONGOING TAB ===== -->
+<div class="tab-content" id="tab-ongoing">
+    <div class="card">
+        <div class="card-header"><h3>🔄 Ongoing Bookings</h3></div>
+        <div class="card-body">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" placeholder="Search ongoing bookings...">
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer</th>
+                            <th>Service</th>
+                            <th>Partner</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="booking-id">#1002</span></td>
+                            <td>
+                                <div class="customer-cell">
+                                    <div class="avatar">RS</div>
+                                    <div>
+                                        <div class="name-text">Rahul Sharma</div>
+                                        <div class="email-text">9812345678</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Plumber</td>
+                            <td>HomeServe India</td>
+                            <td>11 Mar 2025</td>
+                            <td>₹750</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-view">View</button>
+                                    <button class="btn btn-complete">Complete</button>
+                                    <button class="btn btn-cancel">Cancel</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== COMPLETED TAB ===== -->
+<div class="tab-content" id="tab-completed">
+    <div class="card">
+        <div class="card-header"><h3>✅ Completed Bookings</h3></div>
+        <div class="card-body">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" placeholder="Search completed bookings...">
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer</th>
+                            <th>Service</th>
+                            <th>Partner</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Rating</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="booking-id">#1003</span></td>
+                            <td>
+                                <div class="customer-cell">
+                                    <div class="avatar">PK</div>
+                                    <div>
+                                        <div class="name-text">Priya Kumar</div>
+                                        <div class="email-text">9845612345</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Carpenter</td>
+                            <td>Ramesh Kumar</td>
+                            <td>10 Mar 2025</td>
+                            <td>₹1200</td>
+                            <td>⭐ 4.8</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-view">View</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CANCELLED TAB ===== -->
+<div class="tab-content" id="tab-cancelled">
+    <div class="card">
+        <div class="card-header"><h3>❌ Cancelled Bookings</h3></div>
+        <div class="card-body">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" placeholder="Search cancelled bookings...">
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer</th>
+                            <th>Service</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="booking-id">#1004</span></td>
+                            <td>
+                                <div class="customer-cell">
+                                    <div class="avatar">MV</div>
+                                    <div>
+                                        <div class="name-text">Mohan Verma</div>
+                                        <div class="email-text">9867543210</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Painter</td>
+                            <td>09 Mar 2025</td>
+                            <td>₹2000</td>
+                            <td>Customer cancelled</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-view">View</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tab, event) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    function filterTable(tableId, query) {
+        const table = document.getElementById(tableId);
+        const rows  = table.querySelectorAll('tbody tr');
+        query = query.toLowerCase();
+        rows.forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+        });
+    }
+
+    function filterByStatus(tableId, status) {
+        const table = document.getElementById(tableId);
+        const rows  = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            row.style.display = (!status || row.dataset.status === status) ? '' : 'none';
+        });
+    }
+</script>
+
+{% endblock %}

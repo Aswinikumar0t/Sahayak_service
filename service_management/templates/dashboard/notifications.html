@@ -1,0 +1,832 @@
+
+{% extends 'layout/base.html' %}
+{% block title %}Notifications | ServiceMS{% endblock %}
+{% block content %}
+{% include 'layout/topbar.html' %}
+
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --surface2: #eaf2fb;
+        --border: #d0e3f5;
+        --accent: #1e88e5;
+        --accent2: #1565c0;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --purple: #8b5cf6;
+        --text: #1a1a2e;
+        --muted: #888888;
+        --font-head: 'Poppins', sans-serif;
+        --font-body: 'DM Sans', sans-serif;
+    }
+
+    body { background: var(--bg); font-family: var(--font-body); color: var(--text); }
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+        display: flex; justify-content: space-between;
+        align-items: center; margin-bottom: 28px;
+        flex-wrap: wrap; gap: 12px;
+    }
+
+    .page-header h1 { font-family: var(--font-head); color: var(--accent); font-size: 2rem; }
+    .page-header p  { color: var(--muted); margin-top: 6px; font-size: 14px; }
+
+    .header-actions { display: flex; gap: 10px; }
+
+    .btn-outline {
+        padding: 10px 18px; border-radius: 10px;
+        font-size: 13px; font-weight: 600;
+        font-family: var(--font-body); cursor: pointer;
+        background: white; color: var(--accent);
+        border: 1.5px solid var(--border); transition: 0.2s;
+    }
+
+    .btn-outline:hover { border-color: var(--accent); background: var(--surface2); }
+
+    .btn-primary {
+        padding: 10px 20px; border-radius: 10px;
+        font-size: 13px; font-weight: 600;
+        font-family: var(--font-body); cursor: pointer;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white; border: none;
+        box-shadow: 0 4px 12px rgba(30,136,229,0.3); transition: 0.2s;
+    }
+
+    .btn-primary:hover { transform: translateY(-1px); }
+
+    /* ===== LAYOUT ===== */
+    .notif-layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    /* ===== LEFT FILTER PANEL ===== */
+    .filter-panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.06);
+        position: sticky;
+        top: 110px;
+        overflow: hidden;
+    }
+
+    .filter-panel-header {
+        padding: 16px 20px;
+        background: var(--surface2);
+        border-bottom: 1px solid var(--border);
+        font-family: var(--font-head);
+        font-size: 14px; font-weight: 700;
+        color: var(--accent);
+    }
+
+    .filter-section { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .filter-section:last-child { border-bottom: none; }
+
+    .filter-section-title {
+        font-size: 11px; font-weight: 700; color: var(--muted);
+        text-transform: uppercase; letter-spacing: 1px;
+        margin-bottom: 12px;
+    }
+
+    .filter-cat {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 8px 12px; border-radius: 8px;
+        cursor: pointer; transition: all 0.2s; margin-bottom: 4px;
+        font-size: 13px; color: var(--text); font-weight: 500;
+        border: 1px solid transparent;
+    }
+
+    .filter-cat:hover { background: var(--surface2); border-color: var(--border); }
+
+    .filter-cat.active {
+        background: var(--surface2); border-color: var(--accent);
+        color: var(--accent); font-weight: 700;
+    }
+
+    .filter-cat .cat-icon { margin-right: 8px; }
+
+    .filter-count {
+        background: var(--border); color: var(--muted);
+        padding: 1px 8px; border-radius: 10px;
+        font-size: 11px; font-weight: 700;
+    }
+
+    .filter-cat.active .filter-count {
+        background: var(--accent); color: white;
+    }
+
+    /* Summary boxes in filter panel */
+    .notif-summary {
+        display: grid; grid-template-columns: 1fr 1fr;
+        gap: 8px; padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .summary-box {
+        background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 10px; padding: 12px; text-align: center;
+    }
+
+    .summary-box .s-value {
+        font-family: var(--font-head); font-size: 20px;
+        font-weight: 700; color: var(--accent);
+    }
+
+    .summary-box .s-label {
+        font-size: 11px; color: var(--muted); margin-top: 2px;
+    }
+
+    /* ===== RIGHT — NOTIFICATION LIST ===== */
+    .notif-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.06);
+    }
+
+    .notif-card-header {
+        padding: 16px 22px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface2);
+        border-radius: 14px 14px 0 0;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .notif-card-header h3 { font-family: var(--font-head); color: var(--accent); font-size: 15px; }
+
+    .search-bar {
+        display: flex; gap: 10px; padding: 14px 22px;
+        border-bottom: 1px solid var(--border);
+        background: #fafcff;
+    }
+
+    .search-wrapper { flex: 1; position: relative; }
+
+    .search-icon {
+        position: absolute; left: 12px; top: 50%;
+        transform: translateY(-50%); font-size: 14px; color: #bbb;
+    }
+
+    .search-input {
+        width: 100%; padding: 9px 12px 9px 36px;
+        border: 1.5px solid var(--border); border-radius: 9px;
+        font-size: 13px; font-family: var(--font-body);
+        outline: none; background: white; transition: border-color 0.2s;
+    }
+
+    .search-input:focus { border-color: var(--accent); }
+
+    /* ===== NOTIFICATION ITEM ===== */
+    .notif-item {
+        display: flex; gap: 14px;
+        padding: 16px 22px;
+        border-bottom: 1px solid #f0f4f8;
+        transition: background 0.15s; cursor: pointer;
+        position: relative;
+    }
+
+    .notif-item:hover { background: #fafcff; }
+
+    .notif-item.unread {
+        background: linear-gradient(90deg, rgba(30,136,229,0.04), transparent);
+        border-left: 3px solid var(--accent);
+    }
+
+    .notif-item.unread:hover { background: linear-gradient(90deg, rgba(30,136,229,0.07), transparent); }
+
+    /* Unread dot */
+    .unread-dot {
+        position: absolute; top: 20px; right: 22px;
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--accent);
+    }
+
+    .notif-icon-wrap {
+        width: 44px; height: 44px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; flex-shrink: 0;
+    }
+
+    .notif-icon-wrap.booking  { background: rgba(30,136,229,0.12);  }
+    .notif-icon-wrap.payment  { background: rgba(34,197,94,0.12);   }
+    .notif-icon-wrap.partner  { background: rgba(139,92,246,0.12);  }
+    .notif-icon-wrap.alert    { background: rgba(239,68,68,0.12);   }
+    .notif-icon-wrap.system   { background: rgba(245,158,11,0.12);  }
+    .notif-icon-wrap.review   { background: rgba(249,115,22,0.12);  }
+
+    .notif-body { flex: 1; min-width: 0; }
+
+    .notif-top {
+        display: flex; align-items: center; gap: 8px;
+        margin-bottom: 4px; flex-wrap: wrap;
+    }
+
+    .notif-title {
+        font-size: 14px; font-weight: 700; color: var(--text);
+    }
+
+    .notif-item.unread .notif-title { color: var(--accent2); }
+
+    .notif-badge {
+        padding: 2px 8px; border-radius: 10px;
+        font-size: 10px; font-weight: 700;
+    }
+
+    .nb-booking { background: rgba(30,136,229,0.1);  color: #1565c0; }
+    .nb-payment { background: rgba(34,197,94,0.1);   color: #16a34a; }
+    .nb-partner { background: rgba(139,92,246,0.1);  color: #7c3aed; }
+    .nb-alert   { background: rgba(239,68,68,0.1);   color: #dc2626; }
+    .nb-system  { background: rgba(245,158,11,0.1);  color: #d97706; }
+    .nb-review  { background: rgba(249,115,22,0.1);  color: #ea580c; }
+
+    .notif-message { font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 6px; }
+
+    .notif-footer {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 6px;
+    }
+
+    .notif-time { font-size: 11px; color: var(--muted); }
+
+    .notif-actions { display: flex; gap: 6px; }
+
+    .btn-notif {
+        padding: 4px 10px; border-radius: 6px;
+        font-size: 11px; font-weight: 600;
+        cursor: pointer; font-family: var(--font-body);
+        border: 1px solid; transition: 0.2s;
+    }
+
+    .btn-notif-view   { background: var(--surface2); color: var(--accent); border-color: var(--border); }
+    .btn-notif-mark   { background: rgba(34,197,94,0.1); color: #16a34a; border-color: rgba(34,197,94,0.3); }
+    .btn-notif-delete { background: rgba(239,68,68,0.1); color: #dc2626; border-color: rgba(239,68,68,0.3); }
+
+    .btn-notif-view:hover   { background: var(--accent); color: white; }
+    .btn-notif-mark:hover   { background: #22c55e; color: white; }
+    .btn-notif-delete:hover { background: #ef4444; color: white; }
+
+    /* Group date label */
+    .date-group {
+        padding: 8px 22px;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        font-size: 11px; font-weight: 700;
+        color: var(--muted); text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* ===== SEND NOTIFICATION MODAL ===== */
+    .modal {
+        display: none; position: fixed; z-index: 2000;
+        left: 0; top: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.45);
+        align-items: center; justify-content: center;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-content {
+        background: white; border-radius: 18px;
+        width: 520px; max-width: 95vw; max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+        padding: 22px 28px 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex; justify-content: space-between; align-items: center;
+        background: var(--surface2);
+        border-radius: 18px 18px 0 0;
+        position: sticky; top: 0; z-index: 1;
+    }
+
+    .modal-header h2 { font-family: var(--font-head); color: var(--accent); font-size: 18px; }
+
+    .modal-close {
+        font-size: 24px; cursor: pointer;
+        color: #aaa; background: none; border: none;
+    }
+
+    .modal-close:hover { color: #333; }
+    .modal-body { padding: 24px 28px; }
+
+    .form-group { margin-bottom: 18px; }
+
+    .form-group label {
+        display: block; font-size: 13px;
+        font-weight: 600; color: #555; margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%; padding: 10px 14px;
+        border: 1.5px solid var(--border); border-radius: 8px;
+        font-size: 14px; font-family: var(--font-body);
+        outline: none; background: var(--bg); box-sizing: border-box;
+        transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(30,136,229,0.1);
+        background: white;
+    }
+
+    /* Capsule channel selector */
+    .channel-selector { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .channel-opt {
+        padding: 8px 18px; border-radius: 30px;
+        font-size: 13px; font-weight: 600;
+        cursor: pointer; border: 2px solid var(--border);
+        background: var(--bg); color: var(--muted);
+        font-family: var(--font-body); transition: all 0.2s;
+    }
+
+    .channel-opt:hover { border-color: var(--accent); color: var(--accent); }
+
+    .channel-opt.selected {
+        background: rgba(30,136,229,0.1);
+        border-color: var(--accent); color: var(--accent);
+    }
+
+    .modal-footer {
+        padding: 18px 28px 24px; display: flex; gap: 12px;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-submit {
+        flex: 1; padding: 12px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white; border: none; border-radius: 8px;
+        font-size: 15px; font-weight: 600;
+        font-family: var(--font-body); cursor: pointer; transition: 0.2s;
+    }
+
+    .btn-cancel-modal {
+        flex: 1; padding: 12px;
+        background: #f0f0f0; color: #555;
+        border: none; border-radius: 8px; font-size: 15px;
+        font-family: var(--font-body); cursor: pointer;
+    }
+
+    .btn-cancel-modal:hover { background: #ddd; }
+
+    /* ===== TOAST ===== */
+    .toast {
+        position: fixed; bottom: 30px; right: 30px;
+        background: var(--success); color: white;
+        padding: 14px 24px; border-radius: 10px;
+        font-size: 14px; font-weight: 600;
+        box-shadow: 0 6px 20px rgba(34,197,94,0.4);
+        display: none; z-index: 9999; font-family: var(--font-body);
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1>🔔 Notifications</h1>
+        <p>Manage and send notifications to users and partners</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn-outline" onclick="markAllRead()">✅ Mark All Read</button>
+        <button class="btn-primary" onclick="openModal()">📤 Send Notification</button>
+    </div>
+</div>
+
+<!-- Main Layout -->
+<div class="notif-layout">
+
+    <!-- LEFT — Filter Panel -->
+    <div class="filter-panel">
+
+        <!-- Summary -->
+        <div class="filter-panel-header">📊 Summary</div>
+        <div class="notif-summary">
+            <div class="summary-box">
+                <div class="s-value">24</div>
+                <div class="s-label">Unread</div>
+            </div>
+            <div class="summary-box">
+                <div class="s-value">86</div>
+                <div class="s-label">Total</div>
+            </div>
+            <div class="summary-box">
+                <div class="s-value">12</div>
+                <div class="s-label">Today</div>
+            </div>
+            <div class="summary-box">
+                <div class="s-value">3</div>
+                <div class="s-label">Alerts</div>
+            </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="filter-section">
+            <div class="filter-section-title">Category</div>
+
+            <div class="filter-cat active" onclick="filterNotif('all', this)">
+                <span><span class="cat-icon">📬</span>All</span>
+                <span class="filter-count">86</span>
+            </div>
+            <div class="filter-cat" onclick="filterNotif('booking', this)">
+                <span><span class="cat-icon">📅</span>Bookings</span>
+                <span class="filter-count">34</span>
+            </div>
+            <div class="filter-cat" onclick="filterNotif('payment', this)">
+                <span><span class="cat-icon">💳</span>Payments</span>
+                <span class="filter-count">18</span>
+            </div>
+            <div class="filter-cat" onclick="filterNotif('partner', this)">
+                <span><span class="cat-icon">🤝</span>Partners</span>
+                <span class="filter-count">14</span>
+            </div>
+            <div class="filter-cat" onclick="filterNotif('alert', this)">
+                <span><span class="cat-icon">🚨</span>Alerts</span>
+                <span class="filter-count">3</span>
+            </div>
+            <div class="filter-cat" onclick="filterNotif('review', this)">
+                <span><span class="cat-icon">⭐</span>Reviews</span>
+                <span class="filter-count">9</span>
+            </div>
+            <div class="filter-cat" onclick="filterNotif('system', this)">
+                <span><span class="cat-icon">⚙️</span>System</span>
+                <span class="filter-count">8</span>
+            </div>
+        </div>
+
+        <!-- Read Status -->
+        <div class="filter-section">
+            <div class="filter-section-title">Status</div>
+            <div class="filter-cat active-read" onclick="filterRead('unread', this)">
+                <span><span class="cat-icon">🔵</span>Unread</span>
+                <span class="filter-count">24</span>
+            </div>
+            <div class="filter-cat" onclick="filterRead('read', this)">
+                <span><span class="cat-icon">✅</span>Read</span>
+                <span class="filter-count">62</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT — Notification List -->
+    <div>
+        <div class="notif-card">
+            <div class="notif-card-header">
+                <h3>🔔 All Notifications</h3>
+                <span style="font-size:12px;color:var(--muted);">24 unread</span>
+            </div>
+
+            <!-- Search -->
+            <div class="search-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input"
+                           placeholder="Search notifications..."
+                           onkeyup="searchNotif(this.value)">
+                </div>
+            </div>
+
+            <!-- TODAY -->
+            <div class="date-group">Today — 16 March 2026</div>
+
+            <!-- Unread Notifications -->
+            <div class="notif-item unread" data-cat="booking">
+                <div class="notif-dot"></div>
+                <div class="notif-icon-wrap booking">📅</div>
+                <div class="notif-body">
+                    <div class="notif-top">
+                        <span class="notif-title">New Booking Received</span>
+                        <span class="notif-badge nb-booking">Booking</span>
+                    </div>
+                    <div class="notif-message">
+                        Priya Sharma booked <strong>Electrician</strong> service for today at 2:00 PM. Booking ID: <strong>#BK-1024</strong>. Needs partner assignment.
+                    </div>
+                    <div class="notif-footer">
+                        <span class="notif-time">🕐 10 minutes ago</span>
+                        <div class="notif-actions">
+                            <button class="btn-notif btn-notif-view">View Booking</button>
+                            <button class="btn-notif btn-notif-mark" onclick="markRead(this)">Mark Read</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="unread-dot"></div>
+            </div>
+
+            <div class="notif-item unread" data-cat="alert">
+                <div class="notif-icon-wrap alert">🚨</div>
+                <div class="notif-body">
+                    <div class="notif-top">
+                        <span class="notif-title">Overdue Payment Alert</span>
+                        <span class="notif-badge nb-alert">Alert</span>
+                    </div>
+                    <div class="notif-message">
+                        TCS Mumbai payment of <strong>₹18,000</strong> is overdue by 11 days. Invoice <strong>SAH-0003</strong> was due on 05 Mar 2026.
+                    </div>
+                    <div class="notif-footer">
+                        <span class="notif-time">🕐 1 hour ago</span>
+                        <div class="notif-actions">
+                            <button class="btn-notif btn-notif-view">View Invoice</button>
+                            <button class="btn-notif btn-notif-mark" onclick="markRead(this)">Mark Read</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="unread-dot"></div>
+            </div>
+
+            <div class="notif-item unread" data-cat="partner">
+                <div class="notif-icon-wrap partner">🤝</div>
+                <div class="notif-body">
+                    <div class="notif-top">
+                        <span class="notif-title">New Partner Application</span>
+                        <span class="notif-badge nb-partner">Partner</span>
+                    </div>
+                    <div class="notif-message">
+                        <strong>CleanMate Services</strong> submitted a corporate partner application. Business Type: Cleaning. Needs review and approval.
+                    </div>
+                    <div class="notif-footer">
+                        <span class="notif-time">🕐 2 hours ago</span>
+                        <div class="notif-actions">
+                            <button class="btn-notif btn-notif-view">View Application</button>
+                            <button class="btn-notif btn-notif-mark" onclick="markRead(this)">Mark Read</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="unread-dot"></div>
+            </div>
+
+            <div class="notif-item unread" data-cat="payment">
+                <div class="notif-icon-wrap payment">💳</div>
+                <div class="notif-body">
+                    <div class="notif-top">
+                        <span class="notif-title">Payment Received</span>
+                        <span class="notif-badge nb-payment">Payment</span>
+                    </div>
+                    <div class="notif-message">
+                        Wipro Bangalore paid <strong>₹12,000</strong> for Booking <strong>#BK-1008</strong>. Cleaning Staff service. Payment via Bank Transfer.
+                    </div>
+                    <div class="notif-footer">
+                        <span class="notif-time">🕐 3 hours ago</span>
+                        <div class="notif-actions">
+                            <button class="btn-notif btn-notif-view">View Payment</button>
+                            <button class="btn-notif btn-notif-mark" onclick="markRead(this)">Mark Read</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="unread-dot"></div>
+            </div>
+
+            <div class="notif-item" data-cat="review">
+                <div class="notif-icon-wrap review">⭐</div>
+                <div class="notif-body">
+                    <div class="notif-top">
+                        <span class="notif-title">New Review Submitted</span>
+                        <span class="notif-badge nb-review">Review</span>
+                    </div>
+                    <div class="notif-message">
+                        Anjali Nair gave <strong>⭐ 4.8 / 5</strong> rating for Electrician service by Ramesh Kumar. Booking <strong>#BK-1010</strong>.
+                    </div>
+                    <div class="notif-footer">
+                        <span class="notif-time">🕐 5 hours ago</span>
+                        <div class="notif-actions">
+                            <button class="btn-notif btn-notif-view">View Review</button>
+                            <button class="btn-notif btn-notif-delete" onclick="deleteNotif(this)">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="notif-item" data-cat="booking">
+                <div class="notif-icon-wrap booking">📅</div>
+                <div class="notif-body">
+                    <div class="notif-top">
+                        <span class="notif-title">Booking Completed</span>
+                        <span class="notif-badge nb-booking">Booking</span>
+                    </div>
+                    <div class="notif-message">
+                        Booking <strong>#BK-1022</strong> for Carpenter service has been marked as completed by partner Suresh Patel. Duration: 3 hours.
+                    </div>
+                    <div class="notif-footer">
+                        <span class="notif-time">🕐 6 hours ago</span>
+                        <div class="notif-actions">
+                            <button class="btn-notif btn-notif-view">View Booking</button>
+                            <button class="btn-notif btn-notif-delete" onclick="deleteNotif(this)">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- YESTERDAY -->
+            <div class="date-group">Yesterday — 15 March 2026</div>
+
+            <div class="notif-item" data-cat="system">
+                <div class="notif-icon-wrap system">⚙️</div>
+                <div class="notif-body">
+                    <div class="notif-top">
+                        <span class="notif-title">System Backup Completed</span>
+                        <span class="notif-badge nb-system">System</span>
+                    </div>
+                    <div class="notif-message">
+                        Automatic daily backup completed successfully. Database size: 128 MB. Backup stored at 11:00 PM.
+                    </div>
+                    <div class="notif-footer">
+                        <span class="notif-time">🕐 Yesterday, 11:00 PM</span>
+                        <div class="notif-actions">
+                            <button class="btn-notif btn-notif-delete" onclick="deleteNotif(this)">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="notif-item" data-cat="partner">
+                <div class="notif-icon-wrap partner">🤝</div>
+                <div class="notif-body">
+                    <div class="notif-top">
+                        <span class="notif-title">Partner Application Approved</span>
+                        <span class="notif-badge nb-partner">Partner</span>
+                    </div>
+                    <div class="notif-message">
+                        <strong>HomeServe India</strong>'s corporate partner application was approved. They are now active on the platform with 36 workers.
+                    </div>
+                    <div class="notif-footer">
+                        <span class="notif-time">🕐 Yesterday, 3:00 PM</span>
+                        <div class="notif-actions">
+                            <button class="btn-notif btn-notif-view">View Partner</button>
+                            <button class="btn-notif btn-notif-delete" onclick="deleteNotif(this)">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== SEND NOTIFICATION MODAL ===== -->
+<div class="modal" id="notifModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📤 Send Notification</h2>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+
+            <div class="form-group">
+                <label>Send To</label>
+                <select>
+                    <option>-- Select Recipients --</option>
+                    <option>All Users</option>
+                    <option>All Partners</option>
+                    <option>All Corporate Partners</option>
+                    <option>All Solo Partners</option>
+                    <option>All Managers</option>
+                    <option>Specific User</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Notification Type</label>
+                <select>
+                    <option>📅 Booking Update</option>
+                    <option>💳 Payment Alert</option>
+                    <option>🤝 Partner Update</option>
+                    <option>🚨 Alert</option>
+                    <option>⚙️ System</option>
+                    <option>📢 Announcement</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" placeholder="Notification title...">
+            </div>
+
+            <div class="form-group">
+                <label>Message</label>
+                <textarea rows="4" placeholder="Write your message here..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Send Via</label>
+                <div class="channel-selector">
+                    <button type="button" class="channel-opt selected" onclick="toggleChannel(this)">🔔 In-App</button>
+                    <button type="button" class="channel-opt" onclick="toggleChannel(this)">📧 Email</button>
+                    <button type="button" class="channel-opt" onclick="toggleChannel(this)">📱 SMS</button>
+                    <button type="button" class="channel-opt" onclick="toggleChannel(this)">💬 WhatsApp</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Schedule (Optional)</label>
+                <input type="datetime-local">
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button class="btn-submit" onclick="showToast('Notification sent! ✅'); closeModal();">
+                📤 Send Now
+            </button>
+            <button class="btn-cancel-modal" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    function openModal() {
+        document.getElementById('notifModal').classList.add('open');
+    }
+
+    function closeModal() {
+        document.getElementById('notifModal').classList.remove('open');
+    }
+
+    window.onclick = function(e) {
+        const modal = document.getElementById('notifModal');
+        if (e.target === modal) closeModal();
+    }
+
+    function filterNotif(cat, el) {
+        document.querySelectorAll('.filter-cat').forEach(f => f.classList.remove('active'));
+        el.classList.add('active');
+
+        const items = document.querySelectorAll('.notif-item');
+        items.forEach(item => {
+            item.style.display = (cat === 'all' || item.dataset.cat === cat) ? '' : 'none';
+        });
+    }
+
+    function filterRead(type, el) {
+        const items = document.querySelectorAll('.notif-item');
+        items.forEach(item => {
+            if (type === 'unread') {
+                item.style.display = item.classList.contains('unread') ? '' : 'none';
+            } else {
+                item.style.display = !item.classList.contains('unread') ? '' : 'none';
+            }
+        });
+    }
+
+    function markRead(btn) {
+        const item = btn.closest('.notif-item');
+        item.classList.remove('unread');
+        const dot = item.querySelector('.unread-dot');
+        if (dot) dot.remove();
+        showToast('Marked as read ✅');
+    }
+
+    function markAllRead() {
+        document.querySelectorAll('.notif-item.unread').forEach(item => {
+            item.classList.remove('unread');
+            const dot = item.querySelector('.unread-dot');
+            if (dot) dot.remove();
+        });
+        showToast('All notifications marked as read ✅');
+    }
+
+    function deleteNotif(btn) {
+        const item = btn.closest('.notif-item');
+        item.style.transition = 'opacity 0.3s, transform 0.3s';
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(20px)';
+        setTimeout(() => item.remove(), 300);
+        showToast('Notification deleted 🗑️');
+    }
+
+    function searchNotif(query) {
+        query = query.toLowerCase();
+        document.querySelectorAll('.notif-item').forEach(item => {
+            item.style.display = item.textContent.toLowerCase().includes(query) ? '' : 'none';
+        });
+    }
+
+    function toggleChannel(btn) {
+        btn.classList.toggle('selected');
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+</script>
+
+{% endblock %}

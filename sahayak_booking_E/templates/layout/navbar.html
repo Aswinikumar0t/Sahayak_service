@@ -1,0 +1,406 @@
+{% load static %}
+
+<style>
+    header {
+        background: linear-gradient(135deg, #1e88e5, #1565c0);
+        color: white;
+        padding: 0 40px;
+        height: 100px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        z-index: 1000;
+        font-family: 'Poppins', sans-serif;
+        box-shadow: 0 2px 16px rgba(21,101,192,0.18);
+        box-sizing: border-box;
+    }
+
+    /* ── Logo ── */
+    .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .nav-logo img {
+        height: 60px;
+        object-fit: contain;
+        display: block;
+    }
+
+    .nav-logo-text {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        line-height: 1;
+    }
+
+    .nav-logo-sub {
+        font-size: 10px;
+        color: rgba(255,255,255,0.7);
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+    }
+
+    /* ── Nav links ── */
+    .nav-links {
+        list-style: none;
+        display: flex;
+        gap: 6px;
+        margin: 0; padding: 0;
+    }
+
+    .nav-links li a {
+        text-decoration: none;
+        color: rgba(255,255,255,0.9);
+        font-size: 14px;
+        font-weight: 500;
+        padding: 8px 14px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        display: block;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .nav-links li a:hover {
+        background: rgba(255,255,255,0.15);
+        color: white;
+    }
+
+    .nav-links li a.active {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        font-weight: 600;
+    }
+
+    /* ── Buttons ── */
+    .nav-buttons {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .btn-login {
+        background: transparent;
+        border: 2px solid rgba(255,255,255,0.7);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: 'Poppins', sans-serif;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-login:hover {
+        background: rgba(255,255,255,0.15);
+        border-color: white;
+    }
+
+    .btn-signup {
+        background: #ffca28;
+        border: none;
+        color: #1a1a2e;
+        padding: 8px 22px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: 'Poppins', sans-serif;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 3px 10px rgba(255,202,40,0.3);
+    }
+
+    .btn-signup:hover {
+        background: #ffd740;
+        transform: translateY(-1px);
+        box-shadow: 0 5px 14px rgba(255,202,40,0.4);
+    }
+
+    /* ── Profile area (after login) ── */
+    .profile-trigger {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        background: rgba(255,255,255,0.2);
+        padding: 5px 12px;
+        border-radius: 30px;
+        transition: background 0.2s;
+    }
+
+    .profile-trigger:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
+    .profile-avatar {
+        width: 32px;
+        height: 32px;
+        background: #ffca28;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .profile-name {
+        font-weight: 500;
+        color: white;
+    }
+
+    .profile-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 10px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        min-width: 200px;
+        z-index: 1000;
+    }
+
+    .profile-dropdown.show {
+        display: block;
+    }
+
+    .profile-dropdown a {
+        display: block;
+        padding: 10px 15px;
+        text-decoration: none;
+        color: #333;
+        transition: background 0.2s;
+    }
+
+    .profile-dropdown a:hover {
+        background: #f5f5f5;
+    }
+
+    .dropdown-header {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .dropdown-name {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .dropdown-email {
+        font-size: 12px;
+        color: #666;
+    }
+
+    .dropdown-divider {
+        border-top: 1px solid #eee;
+        margin: 0;
+    }
+
+    .logout-link {
+        color: #ef4444 !important;
+    }
+
+    .logout-link:hover {
+        background: #fef2f2 !important;
+    }
+
+    /* ── Become a Partner link ── */
+    .nav-partner-link a {
+        background: rgba(255,202,40,0.15) !important;
+        color: #ffca28 !important;
+        border: 1px solid rgba(255,202,40,0.3);
+    }
+
+    .nav-partner-link a:hover {
+        background: rgba(255,202,40,0.25) !important;
+        color: #ffd740 !important;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+        .nav-links { display: none; }
+        header { padding: 0 20px; }
+    }
+</style>
+
+<header>
+    <!-- Logo -->
+    <a href="{% url 'home' %}" class="nav-logo">
+        <img src="{% static 'icon/navbar_logo.png' %}" alt="Sahayak Logo">
+    </a>
+
+    <!-- Nav Links -->
+    <ul class="nav-links">
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'services' %}">Services</a></li>
+        <li><a href="{% url 'about' %}">About</a></li>
+        <li><a href="{% url 'contact' %}">Contact</a></li>
+        <li id="nav_partner_link"><a href="#" onclick="openPartnerModal(); return false;">Become a Partner</a></li>
+        <li id="nav_bookings_link" style="display: none;"><a href="/my-bookings/">My Bookings</a></li>
+    </ul>
+
+    <!-- Buttons / Profile -->
+    <div class="nav-buttons">
+        <!-- Not Logged In - Show Login/Signup -->
+        <div id="authButtons" style="display: flex; gap: 10px;">
+            <button id="nav_login_btn" class="btn-login" onclick="openLoginModal()">👤 Login</button>
+            <button id="nav_register_btn" class="btn-signup" onclick="openRegisterModal()">✨ Sign Up</button>
+        </div>
+        
+        <!-- Logged In - Show Profile Dropdown -->
+        <div id="profileArea" style="display: none; position: relative;">
+            <div class="profile-trigger" onclick="toggleProfileDropdown()">
+                <div id="profileAvatar" class="profile-avatar"></div>
+                <span id="profileName" class="profile-name">User</span>
+                <span style="color: white; font-size: 12px;">▼</span>
+            </div>
+            <div id="profileDropdown" class="profile-dropdown">
+                <div class="dropdown-header">
+                    <div id="dropdownName" class="dropdown-name">User</div>
+                    <div id="dropdownEmail" class="dropdown-email">user@example.com</div>
+                </div>
+                <a href="/profile/">👤 My Profile</a>
+                <div class="dropdown-divider"></div>
+                <a href="#" onclick="logoutUser(); return false;" class="logout-link">🚪 Logout</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<script>
+    // Check login status on page load
+function checkLoginStatus() {
+    fetch('/accounts/api/profile/', {
+        method: 'GET',
+        headers: {'Content-Type': 'application/json'},
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (response.ok) return response.json();
+        throw new Error('Not logged in');
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            // Hide login buttons, show profile
+            document.getElementById('authButtons').style.display = 'none';
+            document.getElementById('profileArea').style.display = 'block';
+            
+            // HIDE the "Become a Partner" from nav links
+            const partnerLink = document.getElementById('nav_partner_link');
+            if (partnerLink) {
+                partnerLink.style.display = 'none';
+            }
+                        // SHOW the "My Bookings" link after login
+            const bookingsLink = document.getElementById('nav_bookings_link');
+            if (bookingsLink) {
+                bookingsLink.style.display = 'block';
+            }
+            // Update profile info
+            const user = data.user;
+            const displayName = user.first_name ? `${user.first_name} ${user.last_name}` : user.email.split('@')[0];
+            document.getElementById('profileName').textContent = displayName;
+            document.getElementById('dropdownName').textContent = displayName;
+            document.getElementById('dropdownEmail').textContent = user.email;
+            const initial = user.first_name ? user.first_name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase();
+            document.getElementById('profileAvatar').innerHTML = initial;
+        }
+    })
+    .catch(() => {
+        // Show login buttons, hide profile
+        document.getElementById('authButtons').style.display = 'flex';
+        document.getElementById('profileArea').style.display = 'none';
+        
+        // SHOW the "Become a Partner" in nav links when logged out
+        const partnerLink = document.getElementById('nav_partner_link');
+        if (partnerLink) {
+            partnerLink.style.display = 'block';
+        }
+
+                // Hide "My Bookings" when logged out
+        const bookingsLink = document.getElementById('nav_bookings_link');
+        if (bookingsLink) {
+            bookingsLink.style.display = 'none';
+        }
+    });
+}
+    // Toggle profile dropdown
+    function toggleProfileDropdown() {
+        const dropdown = document.getElementById('profileDropdown');
+        dropdown.classList.toggle('show');
+    }
+
+    // Logout function
+    function logoutUser() {
+        fetch('/accounts/api/logout/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin'
+        })
+        .then(() => {
+            window.location.href = '/';
+        })
+        .catch(() => {
+            window.location.href = '/';
+        });
+    }
+
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const profileArea = document.getElementById('profileArea');
+        const dropdown = document.getElementById('profileDropdown');
+        
+        if (profileArea && !profileArea.contains(event.target)) {
+            if (dropdown) {
+                dropdown.classList.remove('show');
+            }
+        }
+    });
+
+    // Highlight active nav link
+    document.addEventListener('DOMContentLoaded', function() {
+        checkLoginStatus();
+        
+        const links = document.querySelectorAll('.nav-links a');
+        links.forEach(link => {
+            if (link.href === window.location.href) {
+                link.classList.add('active');
+            }
+        });
+    });
+</script>

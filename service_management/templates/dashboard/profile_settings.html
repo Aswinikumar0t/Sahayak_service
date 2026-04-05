@@ -1,0 +1,1124 @@
+
+{% extends 'layout/base.html' %}
+{% block title %}Profile Settings | ServiceMS{% endblock %}
+{% block content %}
+{% include 'layout/topbar.html' %}
+
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --surface2: #eaf2fb;
+        --border: #d0e3f5;
+        --accent: #1e88e5;
+        --accent2: #1565c0;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --text: #1a1a2e;
+        --muted: #888888;
+        --font-head: 'Poppins', sans-serif;
+        --font-body: 'DM Sans', sans-serif;
+    }
+
+    body { background: var(--bg); font-family: var(--font-body); color: var(--text); }
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+        display: flex; justify-content: space-between;
+        align-items: center; margin-bottom: 28px;
+        flex-wrap: wrap; gap: 12px;
+    }
+
+    .page-header h1 { font-family: var(--font-head); color: var(--accent); font-size: 2rem; }
+    .page-header p  { color: var(--muted); margin-top: 6px; font-size: 14px; }
+
+    /* ===== MAIN LAYOUT ===== */
+    .profile-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* ===== LEFT — PROFILE CARD + NAV ===== */
+    .profile-sidebar {
+        position: sticky;
+        top: 110px;
+    }
+
+    /* Profile Card */
+    .profile-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.08);
+        overflow: hidden;
+        margin-bottom: 16px;
+    }
+
+    /* Cover photo area */
+    .profile-cover {
+        height: 90px;
+        background: linear-gradient(135deg, #1e88e5, #1565c0, #0d47a1);
+        position: relative;
+    }
+
+    .profile-cover-edit {
+        position: absolute; top: 10px; right: 10px;
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 8px; padding: 5px 10px;
+        font-size: 11px; font-weight: 600; color: white;
+        cursor: pointer; backdrop-filter: blur(4px);
+        transition: 0.2s;
+    }
+
+    .profile-cover-edit:hover { background: rgba(255,255,255,0.35); }
+
+    /* Avatar */
+    .profile-avatar-wrap {
+        display: flex; flex-direction: column;
+        align-items: center;
+        padding: 0 20px 22px;
+        margin-top: -38px;
+    }
+
+    .profile-avatar-container { position: relative; }
+
+    .profile-avatar {
+        width: 76px; height: 76px;
+        border-radius: 50%;
+        border: 4px solid white;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-weight: 700; font-size: 26px;
+        font-family: var(--font-head);
+        box-shadow: 0 4px 16px rgba(30,136,229,0.3);
+        overflow: hidden;
+    }
+
+    .profile-avatar img {
+        width: 100%; height: 100%; object-fit: cover;
+    }
+
+    .avatar-edit-btn {
+        position: absolute; bottom: 2px; right: 2px;
+        width: 24px; height: 24px;
+        background: var(--accent); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; cursor: pointer;
+        border: 2px solid white;
+        transition: 0.2s;
+    }
+
+    .avatar-edit-btn:hover { background: var(--accent2); transform: scale(1.1); }
+
+    .profile-name {
+        font-family: var(--font-head); font-size: 17px;
+        font-weight: 700; color: var(--text); margin-top: 12px;
+        text-align: center;
+    }
+
+    .profile-role-badge {
+        margin-top: 6px; padding: 3px 14px;
+        background: rgba(30,136,229,0.1);
+        color: var(--accent); border-radius: 20px;
+        font-size: 12px; font-weight: 700;
+        border: 1px solid rgba(30,136,229,0.2);
+    }
+
+    .profile-email {
+        font-size: 12px; color: var(--muted);
+        margin-top: 6px; text-align: center;
+    }
+
+    /* Stats row inside profile card */
+    .profile-stats {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        border-top: 1px solid var(--border);
+        margin-top: 14px;
+    }
+
+    .profile-stat {
+        padding: 14px 10px; text-align: center;
+        border-right: 1px solid var(--border);
+    }
+
+    .profile-stat:last-child { border-right: none; }
+
+    .profile-stat .ps-value {
+        font-family: var(--font-head); font-size: 18px;
+        font-weight: 700; color: var(--accent);
+    }
+
+    .profile-stat .ps-label {
+        font-size: 10px; color: var(--muted);
+        text-transform: uppercase; letter-spacing: 0.5px;
+        margin-top: 2px;
+    }
+
+    /* ===== SIDE NAV ===== */
+    .side-nav {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.06);
+        overflow: hidden;
+    }
+
+    .side-nav-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 13px 18px; cursor: pointer;
+        border-bottom: 1px solid #f0f4f8;
+        transition: all 0.2s; font-size: 14px;
+        font-weight: 500; color: var(--muted);
+        border-left: 3px solid transparent;
+        text-decoration: none;
+    }
+
+    .side-nav-item:last-child { border-bottom: none; }
+
+    .side-nav-item:hover {
+        background: var(--surface2);
+        color: var(--accent);
+        border-left-color: var(--accent);
+        padding-left: 21px;
+    }
+
+    .side-nav-item.active {
+        background: var(--surface2);
+        color: var(--accent); font-weight: 700;
+        border-left-color: var(--accent);
+        padding-left: 21px;
+    }
+
+    .side-nav-item .nav-icon { font-size: 18px; }
+
+    /* ===== RIGHT — CONTENT SECTIONS ===== */
+    .content-section { display: none; }
+    .content-section.active { display: block; }
+
+    /* Card */
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.06);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 18px 28px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface2);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .card-header h3 {
+        font-family: var(--font-head); color: var(--accent); font-size: 16px;
+    }
+
+    .card-header p { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    .card-body { padding: 28px; }
+
+    /* ===== FORM ELEMENTS ===== */
+    .form-row {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+    .form-row.full { grid-template-columns: 1fr; }
+
+    .form-group { display: flex; flex-direction: column; gap: 7px; }
+
+    .form-group label {
+        font-size: 13px; font-weight: 700; color: #555;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px 14px;
+        border: 1.5px solid var(--border);
+        border-radius: 9px; font-size: 14px;
+        font-family: var(--font-body); outline: none;
+        background: var(--bg); color: var(--text);
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(30,136,229,0.1);
+        background: white;
+    }
+
+    .form-group input[readonly] {
+        background: #f0f4f8; color: var(--muted); cursor: not-allowed;
+    }
+
+    .field-hint {
+        font-size: 11px; color: var(--muted); margin-top: 2px;
+    }
+
+    /* Save button row */
+    .save-row {
+        display: flex; justify-content: flex-end; gap: 10px;
+        padding-top: 20px; border-top: 1px solid var(--border);
+        margin-top: 8px;
+    }
+
+    .btn-save {
+        padding: 11px 28px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white; border: none; border-radius: 9px;
+        font-size: 14px; font-weight: 700;
+        font-family: var(--font-body); cursor: pointer;
+        box-shadow: 0 4px 12px rgba(30,136,229,0.3);
+        transition: 0.2s;
+    }
+
+    .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(30,136,229,0.4); }
+
+    .btn-reset {
+        padding: 11px 22px;
+        background: white; color: var(--muted);
+        border: 1.5px solid var(--border); border-radius: 9px;
+        font-size: 14px; font-weight: 600;
+        font-family: var(--font-body); cursor: pointer; transition: 0.2s;
+    }
+
+    .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ===== AVATAR UPLOAD SECTION ===== */
+    .avatar-upload-area {
+        display: flex; align-items: center; gap: 28px;
+        padding: 22px; background: var(--surface2);
+        border: 1px solid var(--border); border-radius: 12px;
+        margin-bottom: 28px;
+    }
+
+    .avatar-preview {
+        width: 88px; height: 88px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-weight: 700; font-size: 30px;
+        font-family: var(--font-head); flex-shrink: 0;
+        border: 3px solid var(--accent);
+        box-shadow: 0 4px 14px rgba(30,136,229,0.25);
+        overflow: hidden;
+    }
+
+    .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+    .avatar-upload-right h4 {
+        font-family: var(--font-head); font-size: 15px;
+        color: var(--text); margin-bottom: 6px;
+    }
+
+    .avatar-upload-right p {
+        font-size: 12px; color: var(--muted); margin-bottom: 12px;
+        line-height: 1.5;
+    }
+
+    .avatar-upload-btns { display: flex; gap: 10px; }
+
+    .btn-upload {
+        padding: 8px 18px; background: var(--accent);
+        color: white; border: none; border-radius: 8px;
+        font-size: 13px; font-weight: 600;
+        font-family: var(--font-body); cursor: pointer; transition: 0.2s;
+    }
+
+    .btn-upload:hover { background: var(--accent2); }
+
+    .btn-remove {
+        padding: 8px 18px; background: white;
+        color: var(--danger); border: 1px solid rgba(239,68,68,0.3);
+        border-radius: 8px; font-size: 13px; font-weight: 600;
+        font-family: var(--font-body); cursor: pointer; transition: 0.2s;
+    }
+
+    .btn-remove:hover { background: var(--danger); color: white; }
+
+    /* ===== PASSWORD SECTION ===== */
+    .password-strength {
+        height: 5px; border-radius: 10px;
+        background: var(--border); overflow: hidden; margin-top: 8px;
+    }
+
+    .password-strength-fill {
+        height: 100%; border-radius: 10px;
+        transition: width 0.3s, background 0.3s;
+        width: 0%;
+    }
+
+    .strength-text {
+        font-size: 12px; margin-top: 4px; font-weight: 600;
+    }
+
+    .eye-wrapper { position: relative; }
+
+    .eye-wrapper input { padding-right: 44px; }
+
+    .eye-btn {
+        position: absolute; right: 12px; top: 50%;
+        transform: translateY(-50%);
+        background: none; border: none; cursor: pointer;
+        font-size: 16px; color: var(--muted); padding: 0;
+    }
+
+    .eye-btn:hover { color: var(--accent); }
+
+    /* ===== NOTIFICATION TOGGLES ===== */
+    .notif-toggle-row {
+        display: flex; justify-content: space-between;
+        align-items: center; padding: 16px 0;
+        border-bottom: 1px solid #f0f4f8;
+    }
+
+    .notif-toggle-row:last-child { border-bottom: none; }
+
+    .notif-info h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+    .notif-info p  { font-size: 12px; color: var(--muted); }
+
+    .toggle {
+        position: relative; display: inline-block;
+        width: 46px; height: 24px; flex-shrink: 0;
+    }
+
+    .toggle input { display: none; }
+
+    .toggle-slider {
+        position: absolute; cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: #d0e3f5; border-radius: 24px; transition: 0.3s;
+    }
+
+    .toggle-slider:before {
+        position: absolute; content: '';
+        height: 18px; width: 18px;
+        left: 3px; bottom: 3px;
+        background: white; border-radius: 50%; transition: 0.3s;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .toggle input:checked + .toggle-slider { background: var(--accent); }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(22px); }
+
+    /* ===== ACTIVITY LOG ===== */
+    .activity-item {
+        display: flex; gap: 14px; padding: 14px 0;
+        border-bottom: 1px solid #f0f4f8;
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-icon {
+        width: 38px; height: 38px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 16px; flex-shrink: 0;
+    }
+
+    .activity-icon.blue   { background: rgba(30,136,229,0.1); }
+    .activity-icon.green  { background: rgba(34,197,94,0.1);  }
+    .activity-icon.yellow { background: rgba(245,158,11,0.1); }
+    .activity-icon.red    { background: rgba(239,68,68,0.1);  }
+
+    .activity-text { flex: 1; }
+    .activity-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    .activity-meta  { font-size: 12px; color: var(--muted); }
+    .activity-time  { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+
+    /* ===== DANGER ZONE ===== */
+    .danger-zone {
+        border: 1.5px solid rgba(239,68,68,0.3);
+        border-radius: 12px; padding: 20px;
+        background: rgba(239,68,68,0.02);
+    }
+
+    .danger-zone h4 {
+        font-family: var(--font-head); color: var(--danger);
+        font-size: 15px; margin-bottom: 6px;
+    }
+
+    .danger-zone p { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
+
+    .btn-danger {
+        padding: 9px 20px; background: rgba(239,68,68,0.1);
+        color: var(--danger); border: 1px solid rgba(239,68,68,0.3);
+        border-radius: 8px; font-size: 13px; font-weight: 700;
+        font-family: var(--font-body); cursor: pointer; transition: 0.2s;
+    }
+
+    .btn-danger:hover { background: var(--danger); color: white; }
+
+    /* ===== SECTION DIVIDER ===== */
+    .section-divider {
+        height: 1px; background: var(--border); margin: 24px 0;
+    }
+
+    .section-title {
+        font-size: 12px; font-weight: 700; color: var(--muted);
+        text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;
+    }
+
+    /* ===== TOAST ===== */
+    .toast {
+        position: fixed; bottom: 30px; right: 30px;
+        background: var(--success); color: white;
+        padding: 14px 24px; border-radius: 10px;
+        font-size: 14px; font-weight: 600;
+        box-shadow: 0 6px 20px rgba(34,197,94,0.4);
+        display: none; z-index: 9999; font-family: var(--font-body);
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1>👤 Profile Settings</h1>
+        <p>Manage your personal information and account preferences</p>
+    </div>
+</div>
+
+<!-- Main Layout -->
+<div class="profile-layout">
+
+    <!-- LEFT — Profile Card + Nav -->
+    <div class="profile-sidebar">
+
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <div class="profile-cover">
+                <button class="profile-cover-edit">✏️ Edit Cover</button>
+            </div>
+            <div class="profile-avatar-wrap">
+                <div class="profile-avatar-container">
+                    <div class="profile-avatar" id="sidebarAvatar">
+                        {{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}
+                    </div>
+                    <div class="avatar-edit-btn" onclick="document.getElementById('avatarInput').click()">✏️</div>
+                </div>
+                <div class="profile-name">
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </div>
+                <div class="profile-role-badge">
+                    {{ request.user.role|default:"Admin"|capfirst }}
+                </div>
+                <div class="profile-email">
+                    {{ request.user.email|default:"admin@sahayak.com" }}
+                </div>
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="ps-value">86</div>
+                        <div class="ps-label">Bookings</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="ps-value">26</div>
+                        <div class="ps-label">Partners</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="ps-value">4.8</div>
+                        <div class="ps-label">Rating</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Nav -->
+        <div class="side-nav">
+            <a class="side-nav-item active" onclick="switchSection('personal', this)">
+                <span class="nav-icon">👤</span> Personal Info
+            </a>
+            <a class="side-nav-item" onclick="switchSection('password', this)">
+                <span class="nav-icon">🔒</span> Change Password
+            </a>
+            <a class="side-nav-item" onclick="switchSection('notifications', this)">
+                <span class="nav-icon">🔔</span> Notifications
+            </a>
+            <a class="side-nav-item" onclick="switchSection('activity', this)">
+                <span class="nav-icon">📋</span> Activity Log
+            </a>
+            <a class="side-nav-item" onclick="switchSection('danger', this)" style="color:#dc2626;">
+                <span class="nav-icon">⚠️</span> Account
+            </a>
+        </div>
+
+    </div>
+
+    <!-- RIGHT — Content -->
+    <div>
+
+        <!-- ========== PERSONAL INFO ========== -->
+        <div class="content-section active" id="section-personal">
+
+            <!-- Avatar Upload -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3>🖼️ Profile Picture</h3>
+                        <p>Upload a clear photo to personalize your account</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="avatar-upload-area">
+                        <div class="avatar-preview" id="avatarPreview">
+                            {{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}
+                        </div>
+                        <div class="avatar-upload-right">
+                            <h4>Update Profile Photo</h4>
+                            <p>JPG, PNG or GIF accepted. Max 2MB.<br>Recommended: 400×400 px square image.</p>
+                            <div class="avatar-upload-btns">
+                                <button class="btn-upload" onclick="document.getElementById('avatarInput').click()">
+                                    📷 Upload Photo
+                                </button>
+                                <button class="btn-remove">🗑️ Remove</button>
+                            </div>
+                            <input type="file" id="avatarInput" accept="image/*"
+                                   style="display:none" onchange="previewAvatar(this)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Details -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3>📝 Personal Information</h3>
+                        <p>Update your name, contact details and address</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="#">
+                        {% csrf_token %}
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input type="text" name="first_name"
+                                       value="{{ request.user.first_name }}"
+                                       placeholder="First name">
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" name="last_name"
+                                       value="{{ request.user.last_name }}"
+                                       placeholder="Last name">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" name="username"
+                                       value="{{ request.user.username }}"
+                                       placeholder="Username">
+                            </div>
+                            <div class="form-group">
+                                <label>Role</label>
+                                <input type="text"
+                                       value="{{ request.user.role|default:'Admin'|capfirst }}"
+                                       readonly>
+                                <span class="field-hint">Role can only be changed by admin</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email Address</label>
+                                <input type="email" name="email"
+                                       value="{{ request.user.email }}"
+                                       placeholder="email@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" name="phone"
+                                       value="{{ request.user.phone|default:'' }}"
+                                       placeholder="+91 98456 12345">
+                            </div>
+                        </div>
+
+                        <div class="section-divider"></div>
+                        <div class="section-title">📍 Address Details</div>
+
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label>Address</label>
+                                <input type="text" name="address"
+                                       placeholder="Street address, area...">
+                            </div>
+                        </div>
+
+                        <div class="form-row three">
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" name="city" placeholder="Mumbai">
+                            </div>
+                            <div class="form-group">
+                                <label>State</label>
+                                <select name="state">
+                                    <option>Maharashtra</option>
+                                    <option>Delhi</option>
+                                    <option>Karnataka</option>
+                                    <option>Tamil Nadu</option>
+                                    <option>Odisha</option>
+                                    <option>Gujarat</option>
+                                    <option>Rajasthan</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>PIN Code</label>
+                                <input type="text" name="pincode" placeholder="400001">
+                            </div>
+                        </div>
+
+                        <div class="save-row">
+                            <button type="button" class="btn-reset">Reset</button>
+                            <button type="button" class="btn-save"
+                                    onclick="showToast('Profile updated successfully! ✅')">
+                                💾 Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========== CHANGE PASSWORD ========== -->
+        <div class="content-section" id="section-password">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3>🔒 Change Password</h3>
+                        <p>Keep your account secure with a strong password</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form autocomplete="off">
+
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label>Current Password</label>
+                                <div class="eye-wrapper">
+                                    <input type="password" id="currentPwd"
+                                           autocomplete="current-password"
+                                           placeholder="Enter current password">
+                                    <button type="button" class="eye-btn"
+                                            onclick="toggleEye('currentPwd', this)">👁️</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>New Password</label>
+                                <div class="eye-wrapper">
+                                    <input type="password" id="newPwd"
+                                           autocomplete="new-password"
+                                           placeholder="Enter new password"
+                                           oninput="checkStrength(this.value)">
+                                    <button type="button" class="eye-btn"
+                                            onclick="toggleEye('newPwd', this)">👁️</button>
+                                </div>
+                                <div class="password-strength">
+                                    <div class="password-strength-fill" id="strengthBar"></div>
+                                </div>
+                                <div class="strength-text" id="strengthText" style="color:var(--muted);">
+                                    Enter a password
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm New Password</label>
+                                <div class="eye-wrapper">
+                                    <input type="password" id="confirmPwd"
+                                           autocomplete="new-password"
+                                           placeholder="Confirm new password"
+                                           oninput="checkMatch()">
+                                    <button type="button" class="eye-btn"
+                                            onclick="toggleEye('confirmPwd', this)">👁️</button>
+                                </div>
+                                <div class="field-hint" id="matchText"></div>
+                            </div>
+                        </div>
+
+                        <!-- Password rules -->
+                        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;">
+                            <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">
+                                Password Requirements
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                <div class="pwd-rule" id="rule-len"  style="font-size:12px;color:var(--muted);">⬜ Minimum 8 characters</div>
+                                <div class="pwd-rule" id="rule-upper"style="font-size:12px;color:var(--muted);">⬜ One uppercase letter</div>
+                                <div class="pwd-rule" id="rule-num"  style="font-size:12px;color:var(--muted);">⬜ One number</div>
+                                <div class="pwd-rule" id="rule-spec" style="font-size:12px;color:var(--muted);">⬜ One special character</div>
+                            </div>
+                        </div>
+
+                        <div class="save-row">
+                            <button type="button" class="btn-reset">Cancel</button>
+                            <button type="button" class="btn-save"
+                                    onclick="showToast('Password changed successfully! 🔒')">
+                                🔒 Update Password
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== NOTIFICATIONS ========== -->
+        <div class="content-section" id="section-notifications">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3>🔔 Notification Preferences</h3>
+                        <p>Choose what notifications you want to receive</p>
+                    </div>
+                </div>
+                <div class="card-body">
+
+                    <div class="section-title">📧 Email Notifications</div>
+
+                    <div class="notif-toggle-row">
+                        <div class="notif-info">
+                            <h4>New Booking Alert</h4>
+                            <p>Get email when a new booking is placed</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="notif-toggle-row">
+                        <div class="notif-info">
+                            <h4>Payment Received</h4>
+                            <p>Email when payment is received from a client</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="notif-toggle-row">
+                        <div class="notif-info">
+                            <h4>Partner Application</h4>
+                            <p>Email when a new partner application arrives</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="notif-toggle-row">
+                        <div class="notif-info">
+                            <h4>Weekly Reports</h4>
+                            <p>Receive weekly summary every Monday morning</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+                    </div>
+
+                    <div class="section-divider"></div>
+                    <div class="section-title">📱 In-App Notifications</div>
+
+                    <div class="notif-toggle-row">
+                        <div class="notif-info">
+                            <h4>Booking Updates</h4>
+                            <p>Show in-app alerts for booking status changes</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="notif-toggle-row">
+                        <div class="notif-info">
+                            <h4>Overdue Payment Alerts</h4>
+                            <p>Alert when a payment is overdue</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="notif-toggle-row">
+                        <div class="notif-info">
+                            <h4>System Notifications</h4>
+                            <p>Updates about system maintenance and changes</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+                    </div>
+
+                    <div class="save-row">
+                        <button type="button" class="btn-save"
+                                onclick="showToast('Notification preferences saved! 🔔')">
+                            💾 Save Preferences
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== ACTIVITY LOG ========== -->
+        <div class="content-section" id="section-activity">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3>📋 Recent Activity</h3>
+                        <p>Your last 30 days account activity</p>
+                    </div>
+                </div>
+                <div class="card-body">
+
+                    <div class="activity-item">
+                        <div class="activity-icon green">🔑</div>
+                        <div class="activity-text">
+                            <div class="activity-title">Login Successful</div>
+                            <div class="activity-meta">Chrome on Windows • IP: 192.168.1.10 • Mumbai</div>
+                        </div>
+                        <div class="activity-time">Today, 10:30 AM</div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon blue">📋</div>
+                        <div class="activity-text">
+                            <div class="activity-title">Booking #BK-1024 Assigned</div>
+                            <div class="activity-meta">Assigned Ramesh Kumar to Priya Sharma's booking</div>
+                        </div>
+                        <div class="activity-time">Today, 9:45 AM</div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon yellow">✏️</div>
+                        <div class="activity-text">
+                            <div class="activity-title">Profile Updated</div>
+                            <div class="activity-meta">Changed phone number and address</div>
+                        </div>
+                        <div class="activity-time">Yesterday, 3:15 PM</div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon green">💳</div>
+                        <div class="activity-text">
+                            <div class="activity-title">Payment Marked — ₹25,000</div>
+                            <div class="activity-meta">Infosys Ltd invoice SAH-0002 marked as paid</div>
+                        </div>
+                        <div class="activity-time">Yesterday, 12:00 PM</div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon red">🔒</div>
+                        <div class="activity-text">
+                            <div class="activity-title">Password Changed</div>
+                            <div class="activity-meta">Password updated successfully from Chrome</div>
+                        </div>
+                        <div class="activity-time">14 Mar, 5:00 PM</div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon blue">👤</div>
+                        <div class="activity-text">
+                            <div class="activity-title">New User Added</div>
+                            <div class="activity-meta">Added Priya Sharma as Staff role</div>
+                        </div>
+                        <div class="activity-time">13 Mar, 11:20 AM</div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon green">✅</div>
+                        <div class="activity-text">
+                            <div class="activity-title">Partner Application Approved</div>
+                            <div class="activity-meta">Approved HomeServe India as corporate partner</div>
+                        </div>
+                        <div class="activity-time">12 Mar, 2:30 PM</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== ACCOUNT / DANGER ZONE ========== -->
+        <div class="content-section" id="section-danger">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3>⚙️ Account Settings</h3>
+                        <p>Manage your account status and data</p>
+                    </div>
+                </div>
+                <div class="card-body">
+
+                    <div class="section-title">🌐 Preferences</div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Language</label>
+                            <select>
+                                <option>English</option>
+                                <option>Hindi</option>
+                                <option>Marathi</option>
+                                <option>Tamil</option>
+                                <option>Telugu</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Timezone</label>
+                            <select>
+                                <option>IST — Asia/Kolkata (UTC+5:30)</option>
+                                <option>UTC</option>
+                                <option>EST</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date Format</label>
+                            <select>
+                                <option>DD/MM/YYYY</option>
+                                <option>MM/DD/YYYY</option>
+                                <option>YYYY-MM-DD</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Currency</label>
+                            <select>
+                                <option>₹ INR — Indian Rupee</option>
+                                <option>$ USD</option>
+                                <option>€ EUR</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="save-row" style="margin-bottom:28px;">
+                        <button type="button" class="btn-save"
+                                onclick="showToast('Preferences saved! ✅')">
+                            💾 Save Preferences
+                        </button>
+                    </div>
+
+                    <div class="section-divider"></div>
+                    <div class="section-title" style="color:var(--danger);">⚠️ Danger Zone</div>
+
+                    <div style="display:flex;flex-direction:column;gap:14px;">
+                        <div class="danger-zone">
+                            <h4>🔴 Deactivate Account</h4>
+                            <p>Temporarily disable your account. You can reactivate anytime by logging in again. Your data will be preserved.</p>
+                            <button class="btn-danger">Deactivate My Account</button>
+                        </div>
+
+                        <div class="danger-zone">
+                            <h4>🗑️ Delete Account</h4>
+                            <p>Permanently delete your account and all associated data. This action <strong>cannot be undone</strong>. All bookings, reports and history will be lost.</p>
+                            <button class="btn-danger" onclick="confirmDelete()">Delete My Account</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    // Section switcher
+    function switchSection(section, el) {
+        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.side-nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('section-' + section).classList.add('active');
+        el.classList.add('active');
+    }
+
+    // Avatar preview
+    function previewAvatar(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('avatarPreview');
+                const sidebar = document.getElementById('sidebarAvatar');
+                preview.innerHTML = `<img src="${e.target.result}" alt="Avatar">`;
+                sidebar.innerHTML = `<img src="${e.target.result}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Eye toggle for password
+    function toggleEye(id, btn) {
+        const input = document.getElementById(id);
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = '🙈';
+        } else {
+            input.type = 'password';
+            btn.textContent = '👁️';
+        }
+    }
+
+    // Password strength checker
+    function checkStrength(pwd) {
+        const bar  = document.getElementById('strengthBar');
+        const text = document.getElementById('strengthText');
+
+        let score = 0;
+
+        document.getElementById('rule-len').textContent   = (pwd.length >= 8)        ? '✅ Minimum 8 characters'    : '⬜ Minimum 8 characters';
+        document.getElementById('rule-upper').textContent = /[A-Z]/.test(pwd)         ? '✅ One uppercase letter'     : '⬜ One uppercase letter';
+        document.getElementById('rule-num').textContent   = /[0-9]/.test(pwd)         ? '✅ One number'               : '⬜ One number';
+        document.getElementById('rule-spec').textContent  = /[^A-Za-z0-9]/.test(pwd) ? '✅ One special character'    : '⬜ One special character';
+
+        if (pwd.length >= 8)        score++;
+        if (/[A-Z]/.test(pwd))      score++;
+        if (/[0-9]/.test(pwd))      score++;
+        if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+        const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e'];
+        const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+        const widths = ['25%', '50%', '75%', '100%'];
+
+        bar.style.width    = pwd.length ? widths[score - 1] || '10%' : '0%';
+        bar.style.background = pwd.length ? colors[score - 1] : 'transparent';
+        text.textContent   = pwd.length ? labels[score - 1] : 'Enter a password';
+        text.style.color   = pwd.length ? colors[score - 1] : 'var(--muted)';
+    }
+
+    // Password match
+    function checkMatch() {
+        const pwd  = document.getElementById('newPwd').value;
+        const conf = document.getElementById('confirmPwd').value;
+        const el   = document.getElementById('matchText');
+
+        if (!conf) { el.textContent = ''; return; }
+
+        if (pwd === conf) {
+            el.textContent = '✅ Passwords match';
+            el.style.color = '#22c55e';
+        } else {
+            el.textContent = '❌ Passwords do not match';
+            el.style.color = '#ef4444';
+        }
+    }
+
+    // Confirm delete
+    function confirmDelete() {
+        if (confirm('Are you sure? This will permanently delete your account and cannot be undone!')) {
+            showToast('Account deletion requested ⚠️');
+        }
+    }
+
+    // Toast
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+</script>
+
+{% endblock %}

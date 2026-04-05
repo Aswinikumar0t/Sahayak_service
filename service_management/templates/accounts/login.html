@@ -1,0 +1,381 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | ServiceMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f5fb;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== PAGE WRAPPER ===== */
+        .login-wrapper {
+            display: flex;
+            width: 900px;
+            min-height: 520px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(30,136,229,0.15);
+        }
+
+        /* ===== LEFT PANEL ===== */
+        .login-left {
+            flex: 1;
+            background: linear-gradient(145deg, #1e88e5 0%, #1565c0 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Background circle decorations */
+        .login-left::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            top: -80px;
+            right: -80px;
+        }
+
+        .login-left::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            bottom: -50px;
+            left: -50px;
+        }
+
+        /* Logo */
+        .left-logo {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.15);
+            padding: 10px;
+            margin-bottom: 24px;
+            z-index: 1;
+        }
+
+        .left-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            z-index: 1;
+        }
+
+        .left-subtitle {
+            font-size: 14px;
+            color: rgba(255,255,255,0.75);
+            text-align: center;
+            line-height: 1.6;
+            z-index: 1;
+            max-width: 220px;
+        }
+
+        /* Bottom badge */
+        .left-badge {
+            margin-top: 40px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 30px;
+            padding: 8px 20px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.9);
+            font-weight: 500;
+            z-index: 1;
+        }
+
+        /* ===== RIGHT PANEL ===== */
+        .login-right {
+            flex: 1;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 50px 45px;
+        }
+
+        .right-heading {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a2a3a;
+            margin-bottom: 6px;
+        }
+
+        .right-subheading {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 32px;
+        }
+
+        /* ===== FORM FIELDS ===== */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #bbb;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border: 1.5px solid #e8ecf0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            color: #333;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: #fafbfc;
+        }
+
+        .form-group input:focus {
+            border-color: #1e88e5;
+            box-shadow: 0 0 0 3px rgba(30,136,229,0.1);
+            background: white;
+        }
+
+        .eye-toggle {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 16px;
+            color: #bbb;
+            user-select: none;
+        }
+
+        /* ===== REMEMBER + FORGOT ===== */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .remember-label {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .remember-label input {
+            accent-color: #1e88e5;
+            cursor: pointer;
+        }
+
+        .forgot-link {
+            font-size: 13px;
+            color: #1e88e5;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== ERROR BOX ===== */
+        .error-box {
+            display: none;
+            background: #fff3f3;
+            border: 1px solid #ffcdd2;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            color: #c62828;
+            font-size: 13px;
+        }
+
+        /* ===== LOGIN BUTTON ===== */
+        .login-btn {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #1e88e5, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(30,136,229,0.35);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(30,136,229,0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ===== FOOTER TEXT ===== */
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: #bbb;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 700px) {
+            .login-wrapper {
+                flex-direction: column;
+                width: 95%;
+                min-height: unset;
+            }
+            .login-left {
+                padding: 40px 30px;
+            }
+            .login-right {
+                padding: 36px 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-wrapper">
+
+    <!-- ===== LEFT PANEL ===== -->
+    <div class="login-left">
+        <img src="{% static 'logo.png' %}" alt="Logo" class="left-logo">
+        <h1 class="left-title">ServiceMS</h1>
+        <p class="left-subtitle">Management portal for admins and service coordinators</p>
+        <div class="left-badge">⚙️ Admin Access Only</div>
+    </div>
+
+    <!-- ===== RIGHT PANEL ===== -->
+    <div class="login-right">
+
+        <h2 class="right-heading">Welcome Back 👋</h2>
+        <p class="right-subheading">Login to your management account</p>
+
+            <!-- Error Box -->
+            {% if error %}
+            <div class="error-box" style="display:block;">⚠️ {{ error }}</div>
+            {% endif %}
+
+            <!-- ✅ Form opens here -->
+            <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+        <!-- Username -->
+            <div class="form-group">
+                <label>Username / Email</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">📧</span>
+                    <input type="text" id="login_email" name="username"
+                        placeholder="Enter your email or username"
+                        onkeydown="if(event.key==='Enter') document.getElementById('login_password').focus()">
+                </div>
+            </div>
+                <!-- Password -->
+        <div class="form-group">
+            <label>Password</label>
+            <div class="input-wrapper">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="login_password" name="password" 
+                    placeholder="Enter your password">
+                <span class="eye-toggle" onclick="togglePassword()">👁️</span>
+            </div>
+        </div>
+
+        <!-- Remember + Forgot -->
+        <div class="form-options">
+            <label class="remember-label">
+                <input type="checkbox" id="rememberMe"> Remember me
+            </label>
+            <a href="#" class="forgot-link">Forgot Password?</a>
+        </div>
+
+        <!-- Login Button -->
+        <button type="submit" class="login-btn">Login to Dashboard</button>
+</form> 
+        <p class="login-footer">© 2025 ServiceMS · All rights reserved</p>
+
+    </div>
+
+</div>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+    function togglePassword() {
+        const field = document.getElementById('login_password');
+        field.type = field.type === 'password' ? 'text' : 'password';
+    }
+
+    function showError(msg) {
+        const box = document.getElementById('errorBox');
+        box.textContent = '⚠️ ' + msg;
+        box.style.display = 'block';
+    }
+
+
+    function getCookie(name) {
+        let val = null;
+        if (document.cookie) {
+            document.cookie.split(';').forEach(c => {
+                c = c.trim();
+                if (c.startsWith(name + '='))
+                    val = decodeURIComponent(c.split('=')[1]);
+            });
+        }
+        return val;
+    }
+</script>
+
+</body>
+</html>

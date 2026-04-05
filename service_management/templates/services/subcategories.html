@@ -1,0 +1,49 @@
+
+{% extends 'layout/base.html' %}
+{% block title %}{{ category.name }} | Sub-Categories{% endblock %}
+{% block content %}
+{% include 'layout/topbar.html' %}
+
+<style>
+    /* Same styles as services page */
+    :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --border: #d0e3f5;
+        --accent: #1e88e5;
+    }
+    body { background: var(--bg); }
+    .page-header { margin-bottom: 24px; }
+    .service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .service-card { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center; }
+    .service-emoji { font-size: 48px; margin-bottom: 12px; }
+    .btn { padding: 8px 16px; border-radius: 8px; text-decoration: none; display: inline-block; margin: 4px; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-secondary { background: #f0f0f0; color: #555; }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1>{{ category.icon }} {{ category.name }}</h1>
+        <p>Select a specific service to continue</p>
+    </div>
+    <a href="{% url 'services' %}" class="btn btn-secondary">← Back to Categories</a>
+</div>
+
+<div class="service-grid">
+    {% for sub in subcategories %}
+    <div class="service-card">
+        <div class="service-emoji">{{ category.icon }}</div>
+        <h3>{{ sub.name }}</h3>
+        <p style="color: #888; font-size: 13px; margin: 10px 0;">Available for booking</p>
+        <a href="{% url 'rate_plans' %}?sub_category={{ sub.id }}" class="btn btn-primary">View Rate Plans →</a>
+    </div>
+    {% empty %}
+    <div style="text-align: center; padding: 50px;">
+        <h3>No sub-categories available</h3>
+        <p>Add sub-categories for {{ category.name }} from the admin panel</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

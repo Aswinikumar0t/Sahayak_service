@@ -1,0 +1,717 @@
+{% extends 'layout/base.html' %}
+{% block title %}Services | ServiceMS{% endblock %}
+{% block content %}
+{% include 'layout/topbar.html' %}
+
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --surface2: #eaf2fb;
+        --border: #d0e3f5;
+        --accent: #1e88e5;
+        --accent2: #1565c0;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --text: #1a1a2e;
+        --muted: #888888;
+        --font-head: 'Poppins', sans-serif;
+        --font-body: 'DM Sans', sans-serif;
+    }
+
+    body { background: var(--bg); font-family: var(--font-body); color: var(--text); }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .page-header h1 { font-family: var(--font-head); color: var(--accent); font-size: 2rem; }
+    .page-header p  { color: var(--muted); margin-top: 6px; font-size: 14px; }
+
+    .btn-add {
+        padding: 11px 22px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white; border: none; border-radius: 10px;
+        font-size: 14px; font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-add:hover { transform: translateY(-1px); }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+
+    .stat-icon.blue   { background: rgba(30,136,229,0.12); }
+    .stat-icon.green  { background: rgba(34,197,94,0.12); }
+    .stat-icon.yellow { background: rgba(245,158,11,0.12); }
+
+    .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+    .stat-value { font-family: var(--font-head); font-size: 28px; font-weight: 700; }
+    .stat-value.blue   { color: var(--accent); }
+    .stat-value.green  { color: var(--success); }
+    .stat-value.yellow { color: var(--warning); }
+
+    .tab-wrapper {
+        display: flex;
+        gap: 0;
+        margin-bottom: 24px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 6px;
+        width: fit-content;
+    }
+
+    .tab-btn {
+        padding: 10px 24px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .tab-btn:hover { background: var(--surface2); color: var(--accent); }
+
+    .tab-btn.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+    }
+
+    .card-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface2);
+        border-radius: 14px 14px 0 0;
+    }
+
+    .card-header h3 { font-family: var(--font-head); color: var(--accent); font-size: 16px; }
+    .card-body { padding: 20px 24px; }
+
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .search-wrapper {
+        flex: 1;
+        position: relative;
+        min-width: 200px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: #bbb;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 10px 14px 10px 42px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        outline: none;
+        background: var(--bg);
+    }
+
+    .search-input:focus {
+        border-color: var(--accent);
+        background: white;
+    }
+
+    .filter-select {
+        padding: 10px 16px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        background: var(--bg);
+        cursor: pointer;
+        min-width: 150px;
+    }
+
+    .service-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+    }
+
+    .service-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px;
+        transition: all 0.2s;
+    }
+
+    .service-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(30,136,229,0.15);
+        border-color: var(--accent);
+    }
+
+    .service-emoji { font-size: 48px; margin-bottom: 12px; display: block; text-align: center; }
+    .service-name { font-family: var(--font-head); font-size: 18px; font-weight: 600; text-align: center; margin-bottom: 12px; }
+
+    .badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 12px;
+        text-align: center;
+        width: 100%;
+    }
+
+    .badge-active   { background: rgba(34,197,94,0.12); color: #16a34a; }
+    .badge-inactive { background: rgba(239,68,68,0.12); color: #dc2626; }
+
+    .service-meta {
+        text-align: center;
+        font-size: 13px;
+        color: var(--muted);
+        margin: 12px 0;
+    }
+
+    .service-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        border: 1px solid;
+        text-decoration: none;
+        display: inline-block;
+        transition: 0.2s;
+    }
+
+    .btn-view   { background: var(--surface2); color: var(--accent); border-color: var(--border); }
+    .btn-edit   { background: rgba(245,158,11,0.1); color: #d97706; border-color: rgba(245,158,11,0.3); }
+    .btn-delete { background: rgba(239,68,68,0.1); color: #dc2626; border-color: rgba(239,68,68,0.3); }
+    .btn-toggle { background: rgba(34,197,94,0.1); color: #16a34a; border-color: rgba(34,197,94,0.3); }
+
+    .btn-view:hover   { background: var(--accent); color: white; }
+    .btn-edit:hover   { background: #f59e0b; color: white; }
+    .btn-delete:hover { background: #ef4444; color: white; }
+    .btn-toggle:hover { background: #22c55e; color: white; }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.45);
+    }
+
+    .modal.open { display: flex; align-items: center; justify-content: center; }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        width: 500px;
+        max-width: 95vw;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .modal-header h2 { font-family: var(--font-head); color: var(--accent); font-size: 20px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+
+    .btn-submit {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+    }
+
+    .btn-cancel {
+        width: 100%;
+        padding: 12px;
+        background: #f0f0f0;
+        color: #555;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 50px;
+        color: var(--muted);
+        grid-column: 1/-1;
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1>🛠️ Services</h1>
+        <p>Manage all services offered by Sahayak</p>
+    </div>
+
+    <!-- ✅ Category button — visible by default -->
+    <button class="btn-add"
+            id="btn-add-category"
+            onclick="openModal()"
+            style="display:block;">
+        + Add New Category
+    </button>
+
+    <!-- ✅ Sub Category button — hidden by default -->
+    <button class="btn-add"
+            id="btn-add-subcategory"
+            onclick="openSubCategoryModal()"
+            style="display:none;">
+        + Add Sub Category
+    </button>
+</div>
+
+<!-- Statistics -->
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-icon blue">📂</div>
+        <div>
+            <div class="stat-label">Total Categories</div>
+            <div class="stat-value blue">{{ total_categories }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">📋</div>
+        <div>
+            <div class="stat-label">Active Categories</div>
+            <div class="stat-value green">{{ active_categories }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon yellow">📌</div>
+        <div>
+            <div class="stat-label">Total Sub-Categories</div>
+            <div class="stat-value yellow">{{ total_subcategories }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">✅</div>
+        <div>
+            <div class="stat-label">Active Sub-Categories</div>
+            <div class="stat-value green">{{ active_subcategories }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="tab-wrapper">
+    <button class="tab-btn active" onclick="switchTab('categories', event)">📂 Categories</button>
+    <button class="tab-btn" onclick="switchTab('subcategories', event)">📋 Sub-Categories</button>
+</div>
+
+<!-- Categories Tab -->
+<div class="tab-content active" id="tab-categories">
+    <div class="card">
+        <div class="card-header">
+            <h3>All Service Categories</h3>
+        </div>
+        <div class="card-body">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" id="categorySearch" placeholder="Search categories..." onkeyup="filterCategories(this.value)">
+                </div>
+                <select class="filter-select" id="categoryStatusFilter" onchange="filterCategoriesByStatus(this.value)">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+
+            <div class="service-grid" id="categoriesGrid">
+                {% for category in categories %}
+                <div class="service-card" data-status="{% if category.is_active %}active{% else %}inactive{% endif %}" data-name="{{ category.name|lower }}">
+                    <div class="service-emoji">{{ category.icon|default:"📂" }}</div>
+                    <div class="service-name">{{ category.name }}</div>
+                    {% if category.is_active %}
+                        <span class="badge badge-active">✅ Active</span>
+                    {% else %}
+                        <span class="badge badge-inactive">❌ Inactive</span>
+                    {% endif %}
+                    <div class="service-meta">
+                        📋 {{ category.sub_categories.count }} sub-categories
+                    </div>
+                    <div class="service-actions">
+                        <a href="{% url 'subcategories' category.id %}" class="btn btn-view">View Details</a>
+                        <a href="{% url 'toggle_category' category.id %}" class="btn btn-toggle">
+                            {% if category.is_active %}Disable{% else %}Enable{% endif %}
+                        </a>
+                        <a href="{% url 'delete_category' category.id %}" class="btn btn-delete" onclick="return confirm('Delete {{ category.name }}? This will also delete all its sub-categories.')">Delete</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <div style="font-size: 48px; margin-bottom: 12px;">📂</div>
+                    <h3>No categories yet</h3>
+                    <p>Click "Add Category" to create your first service category</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sub-Categories Tab -->
+<div class="tab-content" id="tab-subcategories">
+    <div class="card">
+        <div class="card-header">
+            <h3>All Sub-Categories</h3>
+        </div>
+        <div class="card-body">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" id="subSearch" placeholder="Search sub-categories..." onkeyup="filterSubcategories(this.value)">
+                </div>
+                <select class="filter-select" id="subStatusFilter" onchange="filterSubcategoriesByStatus(this.value)">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+
+            <div class="service-grid" id="subcategoriesGrid">
+                {% for sub in subcategories %}
+                <div class="service-card" data-status="{% if sub.is_active %}active{% else %}inactive{% endif %}" data-name="{{ sub.name|lower }}" data-category="{{ sub.category.name|lower }}">
+                    <div class="service-emoji">{{ sub.category.icon|default:"📋" }}</div>
+                    <div class="service-name">{{ sub.name }}</div>
+                    <div class="service-meta" style="font-size: 12px;">
+                        {{ sub.category.icon }} {{ sub.category.name }}
+                    </div>
+                    {% if sub.is_active %}
+                        <span class="badge badge-active">✅ Active</span>
+                    {% else %}
+                        <span class="badge badge-inactive">❌ Inactive</span>
+                    {% endif %}
+                    <div class="service-actions">
+                        <a href="{% url 'toggle_subcategory' sub.id %}" class="btn btn-toggle">
+                            {% if sub.is_active %}Disable{% else %}Enable{% endif %}
+                        </a>
+                        <a href="{% url 'delete_subcategory' sub.id %}" class="btn btn-delete" onclick="return confirm('Delete {{ sub.name }}?')">Delete</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <div style="font-size: 48px; margin-bottom: 12px;">📋</div>
+                    <h3>No sub-categories yet</h3>
+                    <p>Click "Add Sub-Category" to create specific services under categories</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal" id="categoryModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>➕ Add New Category</h2>
+            <button onclick="closeCategoryModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
+        <form method="POST" action="{% url 'services' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_category">
+            <div class="form-group">
+                <label>Category Name *</label>
+                <input type="text" name="category_name" required placeholder="e.g., Electrician, Plumber, Carpenter">
+            </div>
+            <div class="form-group">
+                <label>Icon (Emoji)</label>
+                <select name="category_icon">
+                    <option value="⚡">⚡ Electrician</option>
+                    <option value="🔧">🔧 Plumber</option>
+                    <option value="🪚">🪚 Carpenter</option>
+                    <option value="🎨">🎨 Painter</option>
+                    <option value="🧹">🧹 Cleaning</option>
+                    <option value="❄️">❄️ AC Repair</option>
+                    <option value="💂">💂 Security</option>
+                    <option value="🚗">🚗 Driver</option>
+                    <option value="👨‍🍳">👨‍🍳 Cook</option>
+                    <option value="🌿">🌿 Gardener</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select name="status">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-submit">Add Category</button>
+            <button type="button" onclick="closeCategoryModal()" class="btn-cancel">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<!-- Add Sub-Category Modal -->
+<div class="modal" id="subModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📋 Add New Sub-Category</h2>
+            <button onclick="closeSubModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
+        <form method="POST" action="{% url 'services' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_subcategory">
+            <div class="form-group">
+                <label>Select Category *</label>
+                <select name="category_id" required>
+                    <option value="">-- Select Category --</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.icon }} {{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Sub-Category Name *</label>
+                <input type="text" name="sub_name" required placeholder="e.g., Wiring, Fan Installation, Pipe Repair">
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select name="is_active">
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-submit">Add Sub-Category</button>
+            <button type="button" onclick="closeSubModal()" class="btn-cancel">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Modal Functions
+    function openCategoryModal() {
+        document.getElementById('categoryModal').classList.add('open');
+    }
+    
+    function closeCategoryModal() {
+        document.getElementById('categoryModal').classList.remove('open');
+    }
+    
+    function openSubModal() {
+        document.getElementById('subModal').classList.add('open');
+    }
+    
+    function closeSubModal() {
+        document.getElementById('subModal').classList.remove('open');
+    }
+    
+    // Alias functions for the onclick handlers
+    function openModal() {
+        openCategoryModal();
+    }
+    
+    function openSubCategoryModal() {
+        openSubModal();
+    }
+    
+    // ===== Tab switching =====
+    function switchTab(tab, event) {
+        // Update tab content visibility
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        
+        // Update active button styling
+        if (event && event.target) {
+            event.target.classList.add('active');
+        } else {
+            // Fallback if event is not available
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(tab)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // ✅ Show/hide buttons based on active tab
+        const addCategoryBtn = document.getElementById('btn-add-category');
+        const addSubCategoryBtn = document.getElementById('btn-add-subcategory');
+        
+        if (tab === 'categories') {
+            // Categories tab active - show Add Category, hide Add Sub Category
+            if (addCategoryBtn) addCategoryBtn.style.display = 'block';
+            if (addSubCategoryBtn) addSubCategoryBtn.style.display = 'none';
+        } else if (tab === 'subcategories') {
+            // Sub-categories tab active - hide Add Category, show Add Sub Category
+            if (addCategoryBtn) addCategoryBtn.style.display = 'none';
+            if (addSubCategoryBtn) addSubCategoryBtn.style.display = 'block';
+        }
+    }
+    
+    // Filter Functions for Categories
+    function filterCategories(searchText) {
+        const cards = document.querySelectorAll('#categoriesGrid .service-card');
+        const searchLower = searchText.toLowerCase();
+        
+        cards.forEach(card => {
+            const name = card.getAttribute('data-name') || '';
+            if (name.includes(searchLower)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    function filterCategoriesByStatus(status) {
+        const cards = document.querySelectorAll('#categoriesGrid .service-card');
+        
+        cards.forEach(card => {
+            const cardStatus = card.getAttribute('data-status');
+            if (!status || cardStatus === status) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    // Filter Functions for Sub-Categories
+    function filterSubcategories(searchText) {
+        const cards = document.querySelectorAll('#subcategoriesGrid .service-card');
+        const searchLower = searchText.toLowerCase();
+        
+        cards.forEach(card => {
+            const name = card.getAttribute('data-name') || '';
+            const category = card.getAttribute('data-category') || '';
+            if (name.includes(searchLower) || category.includes(searchLower)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    function filterSubcategoriesByStatus(status) {
+        const cards = document.querySelectorAll('#subcategoriesGrid .service-card');
+        
+        cards.forEach(card => {
+            const cardStatus = card.getAttribute('data-status');
+            if (!status || cardStatus === status) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    // Close modals on outside click
+    window.onclick = function(e) {
+        const categoryModal = document.getElementById('categoryModal');
+        const subModal = document.getElementById('subModal');
+        
+        if (e.target === categoryModal) closeCategoryModal();
+        if (e.target === subModal) closeSubModal();
+    }
+    
+    // Initialize button visibility on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check which tab is active on page load
+        const activeTab = document.querySelector('.tab-content.active');
+        if (activeTab) {
+            if (activeTab.id === 'tab-categories') {
+                document.getElementById('btn-add-category').style.display = 'block';
+                document.getElementById('btn-add-subcategory').style.display = 'none';
+            } else if (activeTab.id === 'tab-subcategories') {
+                document.getElementById('btn-add-category').style.display = 'none';
+                document.getElementById('btn-add-subcategory').style.display = 'block';
+            }
+        }
+    });
+</script>
+
+{% endblock %}

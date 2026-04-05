@@ -1,0 +1,386 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Dashboard | ServiceMS{% endblock %}
+
+{% block content %}
+
+{% with hide_back=True %}
+{% include 'layout/topbar.html' %}
+{% endwith %}
+<style>
+ 
+
+
+/* PAGE HEADER */
+
+.page-header{
+
+margin-bottom:32px;
+
+}
+
+.page-header h1{
+
+font-family:var(--font-head);
+
+color:var(--accent);
+
+font-size:2rem;
+
+}
+
+.page-header p{
+
+color:var(--muted);
+
+margin-top:6px;
+
+}
+
+
+/* STATS */
+
+.stats-row{
+
+display:grid;
+
+grid-template-columns:repeat(4,1fr);
+
+gap:16px;
+
+margin-bottom:28px;
+
+}
+
+.stat-card{
+
+background:var(--surface);
+
+border:1px solid var(--border);
+
+border-radius:12px;
+
+padding:20px;
+
+box-shadow:0 2px 12px rgba(30,136,229,0.08);
+
+}
+
+.stat-label{
+
+font-size:0.8rem;
+
+color:var(--muted);
+
+margin-bottom:6px;
+
+text-transform:uppercase;
+
+}
+
+.stat-value{
+
+font-family:var(--font-head);
+
+font-size:1.8rem;
+
+font-weight:700;
+
+}
+
+.stat-card:nth-child(1) .stat-value{
+
+color:var(--accent);
+
+}
+
+.stat-card:nth-child(2) .stat-value{
+
+color:var(--success);
+
+}
+
+.stat-card:nth-child(3) .stat-value{
+
+color:var(--warning);
+
+}
+
+.stat-card:nth-child(4) .stat-value{
+
+color:var(--accent2);
+
+}
+
+
+/* CARD */
+
+.card{
+
+background:var(--surface);
+
+border:1px solid var(--border);
+
+border-radius:14px;
+
+box-shadow:0 2px 12px rgba(30,136,229,0.08);
+
+margin-bottom:24px;
+
+}
+
+.card-header{
+
+padding:18px 24px;
+
+border-bottom:1px solid var(--border);
+
+background:var(--surface2);
+
+}
+
+.card-header h3{
+
+font-family:var(--font-head);
+
+color:var(--accent);
+
+}
+
+.card-body{
+
+padding:24px;
+
+}
+
+
+/* QUICK LINKS */
+
+.quick-links{
+
+display:grid;
+
+grid-template-columns:repeat(3,1fr);
+
+gap:14px;
+
+}
+
+.quick-link{
+
+background:var(--surface2);
+
+border:1px solid var(--border);
+
+border-radius:10px;
+
+padding:18px;
+
+display:flex;
+
+align-items:center;
+
+gap:14px;
+
+text-decoration:none;
+
+color:var(--text);
+
+transition:0.2s;
+
+}
+
+.quick-link:hover{
+
+border-color:var(--accent);
+
+background:rgba(30,136,229,0.07);
+
+transform:translateY(-2px);
+
+box-shadow:0 6px 16px rgba(30,136,229,0.12);
+
+}
+
+.ql-icon{
+
+width:42px;
+
+height:42px;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+border-radius:10px;
+
+background:rgba(30,136,229,0.12);
+
+font-size:1.2rem;
+
+}
+
+.ql-title{
+
+font-weight:600;
+
+}
+
+.ql-sub{
+
+font-size:0.8rem;
+
+color:var(--muted);
+
+margin-top:2px;
+
+}
+</style>
+<!-- Welcome Banner -->
+
+        <!-- Page Header -->
+        <div class="page-header">
+
+            <h1>Dashboard</h1>
+
+            <p>
+                Overview of your service management system
+            </p>
+
+        </div>
+
+
+        <!-- Statistics Section -->
+        <div class="stats-row">
+
+            <!-- Stat Card -->
+            <div class="stat-card">
+                <div class="stat-label">
+                    Total Employees
+                </div>
+
+                <div class="stat-value">
+                    124
+                </div>
+            </div>
+
+            <!-- Stat Card -->
+            <div class="stat-card">
+                <div class="stat-label">
+                    Active Partners
+                </div>
+
+                <div class="stat-value">
+                    53
+                </div>
+            </div>
+
+            <!-- Stat Card -->
+            <div class="stat-card">
+                <div class="stat-label">
+                    Pending Bookings
+                </div>
+
+                <div class="stat-value">
+                    18
+                </div>
+            </div>
+
+            <!-- Stat Card -->
+            <div class="stat-card">
+                <div class="stat-label">
+                    Total Services
+                </div>
+
+                <div class="stat-value">
+                    9
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Quick Navigation Card -->
+        <div class="card">
+
+            <div class="card-header">
+
+                <h3>
+                    Quick Navigation
+                </h3>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="quick-links">
+
+                    <!-- Quick Link -->
+                    <a href="{% url 'manage_users' %}" class="quick-link">
+
+                        <div class="ql-icon">👥</div>
+
+                        <div class="ql-content">
+
+                            <div class="ql-title">
+                                Employee Management
+                            </div>
+
+                            <div class="ql-sub">
+                                Manage all employees
+                            </div>
+
+                        </div>
+
+                    </a>
+
+
+                    <!-- Quick Link -->
+                    <a href="{% url 'corporate_partners' %}" class="quick-link">
+
+                        <div class="ql-icon">🏢</div>
+
+                        <div class="ql-content">
+
+                            <div class="ql-title">
+                                Corporate Partners
+                            </div>
+
+                            <div class="ql-sub">
+                                View corporate accounts
+                            </div>
+
+                        </div>
+
+                    </a>
+
+
+                    <!-- Quick Link -->
+                    <a href="{% url 'solo_partners' %}" class="quick-link">
+
+                        <div class="ql-icon">🧑‍🔧</div>
+
+                        <div class="ql-content">
+
+                            <div class="ql-title">
+                                Solo Partners
+                            </div>
+
+                            <div class="ql-sub">
+                                Individual service providers
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+{% include 'dashboard/overview_widgets.html' %} 
+{% endblock %}

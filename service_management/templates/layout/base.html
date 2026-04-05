@@ -1,0 +1,33 @@
+<body>
+
+{% include 'layout/sidebar.html' %}  <!-- ← sidebar lives here -->
+{% include 'layout/topbar.html' %} 
+<div class="main-content" style="margin-left: 260px; padding: 36px 40px;">
+    {% block content %}
+    {% endblock %}
+</div>
+
+<script>
+    
+        document.querySelectorAll('.toggle-menu').forEach(link => {
+
+            link.addEventListener('click', function (e) {
+
+                e.preventDefault();
+
+                const submenu = this.nextElementSibling;
+
+                if (submenu) {
+
+                    submenu.style.display =
+                        submenu.style.display === 'block'
+                            ? 'none'
+                            : 'block';
+
+                }
+
+            });
+
+        });
+</script>
+</body>

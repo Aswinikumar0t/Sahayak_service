@@ -1,0 +1,913 @@
+{% extends 'layout/base.html' %}
+{% block title %}Applications | ServiceMS{% endblock %}
+{% block content %}
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --surface2: #eaf2fb;
+        --border: #d0e3f5;
+        --accent: #1e88e5;
+        --accent2: #1565c0;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --text: #1a1a2e;
+        --muted: #888888;
+        --font-head: 'Poppins', sans-serif;
+        --font-body: 'DM Sans', sans-serif;
+    }
+
+    body {
+        background: var(--bg);
+        font-family: var(--font-body);
+        color: var(--text);
+    }
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+        margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 2rem;
+    }
+
+    .page-header p {
+        color: var(--muted);
+        margin-top: 6px;
+        font-size: 14px;
+    }
+
+    /* ===== TABS ===== */
+    .tab-wrapper {
+        display: flex;
+        gap: 0;
+        margin-bottom: 24px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 6px;
+        width: fit-content;
+        box-shadow: 0 2px 8px rgba(30,136,229,0.08);
+    }
+
+    .tab-btn {
+        padding: 10px 28px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        font-family: var(--font-body);
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+        background: var(--surface2);
+        color: var(--accent);
+    }
+
+    .tab-btn.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(30,136,229,0.3);
+    }
+
+    /* ===== TAB CONTENT ===== */
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    /* ===== STAT CARDS ===== */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 24px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.06);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(30,136,229,0.12);
+    }
+
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .stat-icon.green  { background: rgba(34,197,94,0.12); }
+    .stat-icon.yellow { background: rgba(245,158,11,0.12); }
+    .stat-icon.red    { background: rgba(239,68,68,0.12); }
+
+
+    .stat-label {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .stat-value {
+        font-family: var(--font-head);
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-value.green  { color: var(--success); }
+    .stat-value.yellow { color: var(--warning); }
+    .stat-value.red    { color: var(--danger); }
+
+    /* ===== CARD ===== */
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.06);
+    }
+
+    .card-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface2);
+        border-radius: 14px 14px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 16px;
+    }
+
+    .card-body { padding: 20px 24px; }
+
+    /* ===== SEARCH + FILTER BAR ===== */
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+    .search-wrapper {
+        flex: 1;
+        position: relative;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: #bbb;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 10px 14px 10px 42px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        background: var(--bg);
+    }
+
+    .search-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(30,136,229,0.1);
+        background: white;
+    }
+
+    .filter-select {
+        padding: 10px 16px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        outline: none;
+        background: var(--bg);
+        color: var(--text);
+        cursor: pointer;
+        transition: border-color 0.2s;
+        min-width: 150px;
+    }
+
+    .filter-select:focus {
+        border-color: var(--accent);
+    }
+
+    /* ===== TABLE ===== */
+    .table-wrapper { overflow-x: auto; }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    thead { background: var(--surface2); }
+
+    thead th {
+        padding: 12px 16px;
+        text-align: left;
+        font-family: var(--font-head);
+        font-size: 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+        border-bottom: 1px solid #f0f4f8;
+        transition: background 0.15s;
+    }
+
+    tbody tr:hover { background: var(--surface2); }
+
+    tbody td {
+        padding: 14px 16px;
+        color: var(--text);
+        vertical-align: middle;
+    }
+
+    /* ===== AVATAR ===== */
+    .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    .name-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .name-text { font-weight: 600; }
+    .email-text { font-size: 12px; color: var(--muted); }
+
+    /* ===== STATUS BADGE ===== */
+    .badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-active   { background: rgba(34,197,94,0.12);  color: #16a34a; }
+    .badge-pending  { background: rgba(245,158,11,0.12); color: #d97706; }
+    .badge-rejected { background: rgba(239,68,68,0.12);  color: #dc2626; }
+
+    /* ===== ACTION BUTTONS ===== */
+    .action-btns { display: flex; gap: 8px; }
+
+    .btn-approve {
+        padding: 5px 12px;
+        background: rgba(34,197,94,0.1);
+        color: #16a34a;
+        border: 1px solid rgba(34,197,94,0.3);
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: var(--font-body);
+        transition: 0.2s;
+    }
+
+    .btn-reject {
+        padding: 5px 12px;
+        background: rgba(239,68,68,0.1);
+        color: #dc2626;
+        border: 1px solid rgba(239,68,68,0.3);
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: var(--font-body);
+        transition: 0.2s;
+    }
+
+    .btn-view {
+        padding: 5px 12px;
+        background: var(--surface2);
+        color: var(--accent);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: var(--font-body);
+        transition: 0.2s;
+    }
+
+    .btn-approve:hover { background: #22c55e; color: white; }
+    .btn-reject:hover  { background: #ef4444; color: white; }
+    .btn-view:hover    { background: var(--accent); color: white; }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: var(--muted);
+    }
+
+    .empty-state p { font-size: 14px; margin-top: 8px; }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <h1>📋 Applications</h1>
+    <p>Manage all incoming applications from clients and partners</p>
+</div>
+
+<!-- ===== TABS ===== -->
+<div class="tab-wrapper">
+    <button class="tab-btn active" onclick="switchTab('client')">🏢 Client Applications</button>
+    <button class="tab-btn" onclick="switchTab('corporate')">🤝 Corporate Applications</button>
+    <button class="tab-btn" onclick="switchTab('solo')">🧑‍🔧 Solo Partner Applications</button>
+</div>
+
+<!-- ===================================================================
+     TAB 1 — CLIENT APPLICATIONS
+=================================================================== -->
+<div class="tab-content active" id="tab-client">
+
+    <!-- Stat Cards -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-info">
+                <div class="stat-label">Active</div>
+                <div class="stat-value green">{{ client_active|default:"12" }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon yellow">⏳</div>
+            <div class="stat-info">
+                <div class="stat-label">Pending</div>
+                <div class="stat-value yellow">{{ client_pending|default:"5" }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon red">❌</div>
+            <div class="stat-info">
+                <div class="stat-label">Rejected</div>
+                <div class="stat-value red">{{ client_rejected|default:"3" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Client Applications List</h3>
+        </div>
+        <div class="card-body">
+
+            <!-- Search + Filter -->
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input"
+                           placeholder="Search by company name or email..."
+                           onkeyup="filterTable('clientTable', this.value)">
+                </div>
+                <select class="filter-select" onchange="filterByStatus('clientTable', this.value)">
+                    <option value="">All Status</option>
+                    <option value="active">✅ Active</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="rejected">❌ Rejected</option>
+                </select>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrapper">
+                <table id="clientTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Company</th>
+                            <th>Contact</th>
+                            <th>Phone</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Applied</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if client_applications %}
+                            {% for app in client_applications %}
+                            <tr data-status="{{ app.status }}">
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="avatar">{{ app.company_name|slice:":2"|upper }}</div>
+                                        <div>
+                                            <div class="name-text">{{ app.company_name }}</div>
+                                            <div class="email-text">{{ app.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ app.contact_person }}</td>
+                                <td>{{ app.phone }}</td>
+                                <td>{{ app.location }}</td>
+                                <td><span class="badge badge-{{ app.status }}">{{ app.status|capfirst }}</span></td>
+                                <td>{{ app.applied_at|date:"d M Y" }}</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-view">View</button>
+                                        <button class="btn-approve">Approve</button>
+                                        <button class="btn-reject">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <!-- Sample rows -->
+                            <tr data-status="pending">
+                                <td>1</td>
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="avatar">IN</div>
+                                        <div>
+                                            <div class="name-text">Infosys Ltd</div>
+                                            <div class="email-text">hr@infosys.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Rajesh Kumar</td>
+                                <td>9876543210</td>
+                                <td>Pune</td>
+                                <td><span class="badge badge-pending">Pending</span></td>
+                                <td>10 Mar 2025</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-view">View</button>
+                                        <button class="btn-approve">Approve</button>
+                                        <button class="btn-reject">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr data-status="active">
+                                <td>2</td>
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="avatar">TC</div>
+                                        <div>
+                                            <div class="name-text">TCS Mumbai</div>
+                                            <div class="email-text">admin@tcs.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Priya Sharma</td>
+                                <td>9812345678</td>
+                                <td>Mumbai</td>
+                                <td><span class="badge badge-active">Active</span></td>
+                                <td>05 Feb 2025</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-view">View</button>
+                                        <button class="btn-approve">Approve</button>
+                                        <button class="btn-reject">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr data-status="rejected">
+                                <td>3</td>
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="avatar">WP</div>
+                                        <div>
+                                            <div class="name-text">Wipro Bangalore</div>
+                                            <div class="email-text">contact@wipro.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Amit Verma</td>
+                                <td>9845612345</td>
+                                <td>Bangalore</td>
+                                <td><span class="badge badge-rejected">Rejected</span></td>
+                                <td>01 Jan 2025</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-view">View</button>
+                                        <button class="btn-approve">Approve</button>
+                                        <button class="btn-reject">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================================================================
+     TAB 2 — CORPORATE APPLICATIONS
+=================================================================== -->
+<div class="tab-content" id="tab-corporate">
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-info">
+                <div class="stat-label">Active</div>
+                <div class="stat-value green">{{ corporate_active|default:"8" }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon yellow">⏳</div>
+            <div class="stat-info">
+                <div class="stat-label">Pending</div>
+                <div class="stat-value yellow">{{ corporate_pending|default:"4" }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon red">❌</div>
+            <div class="stat-info">
+                <div class="stat-label">Rejected</div>
+                <div class="stat-value red">{{ corporate_rejected|default:"2" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Corporate Partner Applications</h3>
+        </div>
+        <div class="card-body">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input"
+                           placeholder="Search by business name or email..."
+                           onkeyup="filterTable('corporateTable', this.value)">
+                </div>
+                <select class="filter-select" onchange="filterByStatus('corporateTable', this.value)">
+                    <option value="">All Status</option>
+                    <option value="active">✅ Active</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="rejected">❌ Rejected</option>
+                </select>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="corporateTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Business</th>
+                            <th>Owner</th>
+                            <th>Phone</th>
+                            <th>Service Type</th>
+                            <th>Status</th>
+                            <th>Applied</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if corporate_applications %}
+                            {% for app in corporate_applications %}
+                            <tr data-status="{{ app.status }}">
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="avatar">{{ app.business_name|slice:":2"|upper }}</div>
+                                        <div>
+                                            <div class="name-text">{{ app.business_name }}</div>
+                                            <div class="email-text">{{ app.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ app.owner_name }}</td>
+                                <td>{{ app.phone }}</td>
+                                <td>{{ app.business_type }}</td>
+                                <td><span class="badge badge-{{ app.status }}">{{ app.status|capfirst }}</span></td>
+                                <td>{{ app.applied_at|date:"d M Y" }}</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-view">View</button>
+                                        <button class="btn-approve">Approve</button>
+                                        <button class="btn-reject">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr data-status="pending">
+                                <td>1</td>
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="avatar">TC</div>
+                                        <div>
+                                            <div class="name-text">TechCare Solutions</div>
+                                            <div class="email-text">techcare@email.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Rajesh Kumar</td>
+                                <td>9876543210</td>
+                                <td>Electrician</td>
+                                <td><span class="badge badge-pending">Pending</span></td>
+                                <td>12 Jan 2025</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-view">View</button>
+                                        <button class="btn-approve">Approve</button>
+                                        <button class="btn-reject">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr data-status="active">
+                                <td>2</td>
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="avatar">HS</div>
+                                        <div>
+                                            <div class="name-text">HomeServe India</div>
+                                            <div class="email-text">homeserve@email.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Priya Sharma</td>
+                                <td>9812345678</td>
+                                <td>Plumber</td>
+                                <td><span class="badge badge-active">Active</span></td>
+                                <td>05 Feb 2025</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-view">View</button>
+                                        <button class="btn-approve">Approve</button>
+                                        <button class="btn-reject">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================================================================
+     TAB 3 — SOLO PARTNER APPLICATIONS
+=================================================================== -->
+<div class="tab-content" id="tab-solo">
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-info">
+                <div class="stat-label">Active</div>
+                <div class="stat-value green">{{ solo_active|default:"18" }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon yellow">⏳</div>
+            <div class="stat-info">
+                <div class="stat-label">Pending</div>
+                <div class="stat-value yellow">{{ solo_pending|default:"7" }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon red">❌</div>
+            <div class="stat-info">
+                <div class="stat-label">Rejected</div>
+                <div class="stat-value red">{{ solo_rejected|default:"4" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Solo Partner Applications</h3>
+        </div>
+        <div class="card-body">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input"
+                           placeholder="Search by name or skill..."
+                           onkeyup="filterTable('soloTable', this.value)">
+                </div>
+                <select class="filter-select" onchange="filterByStatus('soloTable', this.value)">
+                    <option value="">All Status</option>
+                    <option value="active">✅ Active</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="rejected">❌ Rejected</option>
+                </select>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="soloTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Skill</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Applied</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if solo_applications %}
+                            {% for app in solo_applications %}
+                            <tr data-status="{{ app.status }}">
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="avatar">{{ app.name|slice:":2"|upper }}</div>
+                                        <div>
+                                            <div class="name-text">{{ app.name }}</div>
+                                            <div class="email-text">{{ app.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ app.phone }}</td>
+                                <td>{{ app.skill }}</td>
+                                <td>{{ app.location }}</td>
+                                <td><span class="badge badge-{{ app.status }}">{{ app.status|capfirst }}</span></td>
+                                <td>{{ app.applied_at|date:"d M Y" }}</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-view">View</button>
+                                        <button class="btn-approve">Approve</button>
+                                        <button class="btn-reject">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr data-status="pending">
+                                <td>1</td>
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="avatar">RK</div>
+                                        <div>
+                                            <div class="name-text">Ramesh Kumar</div>
+                                            <div class="email-text">ramesh@email.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>9876543210</td>
+                                <td>Electrician</td>
+                                <td>Mumbai</td>
+                                <td><span class="badge badge-pending">Pending</span></td>
+                                <td>08 Mar 2025</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-view">View</button>
+                                        <button class="btn-approve">Approve</button>
+                                        <button class="btn-reject">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr data-status="active">
+                                <td>2</td>
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="avatar">SP</div>
+                                        <div>
+                                            <div class="name-text">Suresh Patel</div>
+                                            <div class="email-text">suresh@email.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>9812345678</td>
+                                <td>Plumber</td>
+                                <td>Delhi</td>
+                                <td><span class="badge badge-active">Active</span></td>
+                                <td>01 Feb 2025</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-view">View</button>
+                                        <button class="btn-approve">Approve</button>
+                                        <button class="btn-reject">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr data-status="rejected">
+                                <td>3</td>
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="avatar">AV</div>
+                                        <div>
+                                            <div class="name-text">Amit Verma</div>
+                                            <div class="email-text">amit@email.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>9845612345</td>
+                                <td>Carpenter</td>
+                                <td>Bangalore</td>
+                                <td><span class="badge badge-rejected">Rejected</span></td>
+                                <td>15 Jan 2025</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-view">View</button>
+                                        <button class="btn-approve">Approve</button>
+                                        <button class="btn-reject">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== TAB SWITCHING =====
+    function switchTab(tab) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+        // Show selected tab
+        document.getElementById('tab-' + tab).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    // ===== SEARCH FILTER =====
+    function filterTable(tableId, query) {
+        const table = document.getElementById(tableId);
+        const rows  = table.querySelectorAll('tbody tr');
+        query = query.toLowerCase();
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    }
+
+    // ===== STATUS FILTER =====
+    function filterByStatus(tableId, status) {
+        const table = document.getElementById(tableId);
+        const rows  = table.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            if (!status || row.dataset.status === status) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+</script>
+
+{% endblock %}

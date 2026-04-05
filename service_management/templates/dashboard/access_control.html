@@ -1,0 +1,1179 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Access Control | ServiceMS{% endblock %}
+
+{% block content %}
+{% include 'layout/topbar.html' %}
+
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --surface2: #eaf2fb;
+        --border: #d0e3f5;
+        --accent: #1e88e5;
+        --accent2: #1565c0;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --purple: #8b5cf6;
+        --text: #1a1a2e;
+        --muted: #888888;
+        --font-head: 'Poppins', sans-serif;
+        --font-body: 'DM Sans', sans-serif;
+    }
+
+    body {
+        background: var(--bg);
+        font-family: var(--font-body);
+        color: var(--text);
+    }
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .page-header h1 {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 2rem;
+    }
+
+    .page-header p {
+        color: var(--muted);
+        margin-top: 6px;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        padding: 11px 22px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: var(--font-body);
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(30,136,229,0.3);
+        transition: 0.2s;
+        white-space: nowrap;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(30,136,229,0.4);
+    }
+
+    /* ===== STAT CARDS ===== */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px 24px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.06);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 4px; height: 100%;
+        border-radius: 14px 0 0 14px;
+    }
+
+    .stat-card.blue::before   { background: var(--accent); }
+    .stat-card.green::before  { background: var(--success); }
+    .stat-card.purple::before { background: var(--purple); }
+    .stat-card.yellow::before { background: var(--warning); }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(30,136,229,0.12);
+    }
+
+    .stat-icon {
+        width: 52px; height: 52px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; flex-shrink: 0;
+    }
+
+    .stat-icon.blue   { background: rgba(30,136,229,0.12); }
+    .stat-icon.green  { background: rgba(34,197,94,0.12);  }
+    .stat-icon.purple { background: rgba(139,92,246,0.12); }
+    .stat-icon.yellow { background: rgba(245,158,11,0.12); }
+
+    .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .stat-value { font-family: var(--font-head); font-size: 26px; font-weight: 700; line-height: 1; }
+    .stat-value.blue   { color: var(--accent);  }
+    .stat-value.green  { color: var(--success);  }
+    .stat-value.purple { color: var(--purple);   }
+    .stat-value.yellow { color: var(--warning);  }
+
+    /* ===== TABS ===== */
+    .tab-wrapper {
+        display: flex;
+        gap: 0;
+        margin-bottom: 24px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 6px;
+        width: fit-content;
+        box-shadow: 0 2px 8px rgba(30,136,229,0.08);
+    }
+
+    .tab-btn {
+        padding: 10px 22px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        font-family: var(--font-body);
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .tab-btn:hover { background: var(--surface2); color: var(--accent); }
+
+    .tab-btn.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(30,136,229,0.3);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ===== CARD ===== */
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.06);
+        margin-bottom: 20px;
+    }
+
+    .card-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface2);
+        border-radius: 14px 14px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 16px;
+    }
+
+    .card-body { padding: 24px; }
+
+    /* ===== ROLES GRID ===== */
+    .roles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+    }
+
+    .role-card {
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        padding: 22px;
+        transition: all 0.2s;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .role-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+    }
+
+    .role-card.admin::before    { background: linear-gradient(90deg, #ef4444, #f97316); }
+    .role-card.manager::before  { background: linear-gradient(90deg, #1e88e5, #1565c0); }
+    .role-card.staff::before    { background: linear-gradient(90deg, #22c55e, #16a34a); }
+    .role-card.partner::before  { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+    .role-card.custom::before   { background: linear-gradient(90deg, #f59e0b, #d97706); }
+
+    .role-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(30,136,229,0.14);
+        border-color: var(--accent);
+    }
+
+    .role-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 14px;
+    }
+
+    .role-icon {
+        width: 48px; height: 48px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px;
+    }
+
+    .role-icon.red    { background: rgba(239,68,68,0.12); }
+    .role-icon.blue   { background: rgba(30,136,229,0.12); }
+    .role-icon.green  { background: rgba(34,197,94,0.12); }
+    .role-icon.purple { background: rgba(139,92,246,0.12); }
+    .role-icon.yellow { background: rgba(245,158,11,0.12); }
+
+    .role-name {
+        font-family: var(--font-head);
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+    }
+
+    .role-desc {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 14px;
+        line-height: 1.5;
+    }
+
+    .role-users {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 14px;
+    }
+
+    .role-users strong { color: var(--accent); }
+
+    .role-permissions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+
+    .perm-tag {
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        background: var(--surface2);
+        color: var(--accent);
+        border: 1px solid var(--border);
+    }
+
+    .perm-tag.danger {
+        background: rgba(239,68,68,0.08);
+        color: #dc2626;
+        border-color: rgba(239,68,68,0.2);
+    }
+
+    .role-actions {
+        display: flex;
+        gap: 8px;
+        border-top: 1px solid var(--border);
+        padding-top: 14px;
+    }
+
+    .btn {
+        padding: 6px 14px;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--font-body);
+        border: 1px solid;
+        transition: 0.2s;
+    }
+
+    .btn-edit   { background: rgba(245,158,11,0.1); color: #d97706; border-color: rgba(245,158,11,0.3); }
+    .btn-delete { background: rgba(239,68,68,0.1);  color: #dc2626; border-color: rgba(239,68,68,0.3); }
+    .btn-view   { background: var(--surface2); color: var(--accent); border-color: var(--border); }
+
+    .btn-edit:hover   { background: #f59e0b; color: white; border-color: #f59e0b; }
+    .btn-delete:hover { background: #ef4444; color: white; border-color: #ef4444; }
+    .btn-view:hover   { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* ===== PERMISSIONS TABLE ===== */
+    .table-wrapper { overflow-x: auto; }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    thead { background: var(--surface2); }
+
+    thead th {
+        padding: 12px 16px;
+        text-align: left;
+        font-family: var(--font-head);
+        font-size: 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+        border-bottom: 1px solid #f0f4f8;
+        transition: background 0.15s;
+    }
+
+    tbody tr:hover { background: var(--surface2); }
+
+    tbody td {
+        padding: 14px 16px;
+        color: var(--text);
+        vertical-align: middle;
+    }
+
+    .module-name {
+        font-weight: 700;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ===== TOGGLE SWITCH ===== */
+    .toggle {
+        position: relative;
+        display: inline-block;
+        width: 42px;
+        height: 22px;
+    }
+
+    .toggle input { display: none; }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: #d0e3f5;
+        border-radius: 22px;
+        transition: 0.3s;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: '';
+        height: 16px; width: 16px;
+        left: 3px; bottom: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: 0.3s;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .toggle input:checked + .toggle-slider { background: var(--accent); }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+    .toggle input:checked.danger + .toggle-slider { background: var(--danger); }
+
+    /* ===== USER ACCESS TABLE ===== */
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .avatar {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-weight: 700; font-size: 13px; flex-shrink: 0;
+    }
+
+    .name-text  { font-weight: 600; font-size: 14px; }
+    .sub-text   { font-size: 12px; color: var(--muted); }
+
+    .badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-admin   { background: rgba(239,68,68,0.1);  color: #dc2626; }
+    .badge-manager { background: rgba(30,136,229,0.1); color: #1565c0; }
+    .badge-staff   { background: rgba(34,197,94,0.1);  color: #16a34a; }
+    .badge-partner { background: rgba(139,92,246,0.1); color: #7c3aed; }
+    .badge-active  { background: rgba(34,197,94,0.1);  color: #16a34a; }
+    .badge-inactive{ background: rgba(239,68,68,0.1);  color: #dc2626; }
+
+    .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ===== FILTER BAR ===== */
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .search-wrapper { flex: 1; position: relative; min-width: 200px; }
+
+    .search-icon {
+        position: absolute;
+        left: 14px; top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px; color: #bbb;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 10px 14px 10px 42px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        outline: none;
+        background: var(--bg);
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(30,136,229,0.1);
+        background: white;
+    }
+
+    .filter-select {
+        padding: 10px 16px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        outline: none;
+        background: var(--bg);
+        color: var(--text);
+        cursor: pointer;
+        min-width: 150px;
+        transition: border-color 0.2s;
+    }
+
+    .filter-select:focus { border-color: var(--accent); }
+
+    /* ===== MODAL ===== */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0; top: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.45);
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-content {
+        background: white;
+        border-radius: 18px;
+        width: 520px;
+        max-width: 95vw;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+        padding: 22px 28px 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--surface2);
+        border-radius: 18px 18px 0 0;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .modal-header h2 {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 18px;
+    }
+
+    .modal-close {
+        font-size: 24px; cursor: pointer;
+        color: #aaa; background: none; border: none;
+    }
+
+    .modal-close:hover { color: #333; }
+    .modal-body { padding: 24px 28px; }
+
+    .form-group { margin-bottom: 18px; }
+
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        outline: none;
+        background: var(--bg);
+        box-sizing: border-box;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(30,136,229,0.1); background: white; }
+
+    .modal-footer {
+        padding: 18px 28px 24px;
+        display: flex;
+        gap: 12px;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-submit {
+        flex: 1; padding: 12px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white; border: none; border-radius: 8px;
+        font-size: 15px; font-weight: 600;
+        font-family: var(--font-body); cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-cancel-modal {
+        flex: 1; padding: 12px;
+        background: #f0f0f0; color: #555;
+        border: none; border-radius: 8px;
+        font-size: 15px;
+        font-family: var(--font-body); cursor: pointer;
+    }
+
+    .btn-cancel-modal:hover { background: #ddd; }
+
+    /* ===== PERMISSION CHECKBOXES IN MODAL ===== */
+    .perm-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .perm-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .perm-check:hover { border-color: var(--accent); background: var(--surface2); }
+
+    .perm-check input[type="checkbox"] {
+        width: 16px; height: 16px;
+        accent-color: var(--accent);
+        cursor: pointer;
+        padding: 0;
+        border: none;
+        background: none;
+    }
+
+    .section-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 18px 0;
+    }
+
+    .section-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+    }
+
+    /* ===== TOAST ===== */
+    .toast {
+        position: fixed; bottom: 30px; right: 30px;
+        background: var(--success); color: white;
+        padding: 14px 24px; border-radius: 10px;
+        font-size: 14px; font-weight: 600;
+        box-shadow: 0 6px 20px rgba(34,197,94,0.4);
+        display: none; z-index: 9999;
+        font-family: var(--font-body);
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1>🔐 Access Control</h1>
+        <p>Manage roles, permissions and user access</p>
+    </div>
+    <button class="btn-primary" onclick="openModal()">+ Create New Role</button>
+</div>
+
+<!-- Stat Cards -->
+<div class="stats-row">
+    <div class="stat-card blue">
+        <div class="stat-icon blue">🔐</div>
+        <div>
+            <div class="stat-label">Total Roles</div>
+            <div class="stat-value blue">5</div>
+        </div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon green">👥</div>
+        <div>
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value green">124</div>
+        </div>
+    </div>
+    <div class="stat-card purple">
+        <div class="stat-icon purple">🛡️</div>
+        <div>
+            <div class="stat-label">Permissions</div>
+            <div class="stat-value purple">32</div>
+        </div>
+    </div>
+    <div class="stat-card yellow">
+        <div class="stat-icon yellow">⚠️</div>
+        <div>
+            <div class="stat-label">Restricted</div>
+            <div class="stat-value yellow">8</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="tab-wrapper">
+    <button class="tab-btn active" onclick="switchTab('roles', event)">🎭 Roles</button>
+    <button class="tab-btn" onclick="switchTab('permissions', event)">🛡️ Permissions</button>
+    <button class="tab-btn" onclick="switchTab('users', event)">👥 User Access</button>
+</div>
+
+<!-- ===================================================
+     TAB 1 — ROLES
+=================================================== -->
+<div class="tab-content active" id="tab-roles">
+    <div class="roles-grid">
+
+        <!-- Admin Role -->
+        <div class="role-card admin">
+            <div class="role-card-top">
+                <div class="role-icon red">👑</div>
+                <div class="action-btns">
+                    <button class="btn btn-edit">Edit</button>
+                    <button class="btn btn-delete">Delete</button>
+                </div>
+            </div>
+            <div class="role-name">Admin</div>
+            <div class="role-desc">Full system access. Can manage all users, settings, and data.</div>
+            <div class="role-users">Users assigned: <strong>3</strong></div>
+            <div class="role-permissions">
+                <span class="perm-tag danger">Full Access</span>
+                <span class="perm-tag">Manage Users</span>
+                <span class="perm-tag">Settings</span>
+                <span class="perm-tag">Reports</span>
+                <span class="perm-tag">Delete</span>
+            </div>
+            <div class="role-actions">
+                <button class="btn btn-view" onclick="switchTab('permissions', event)">View Permissions</button>
+            </div>
+        </div>
+
+        <!-- Manager Role -->
+        <div class="role-card manager">
+            <div class="role-card-top">
+                <div class="role-icon blue">🧑‍💼</div>
+                <div class="action-btns">
+                    <button class="btn btn-edit">Edit</button>
+                    <button class="btn btn-delete">Delete</button>
+                </div>
+            </div>
+            <div class="role-name">Manager</div>
+            <div class="role-desc">Can manage bookings, partners and view reports. No settings access.</div>
+            <div class="role-users">Users assigned: <strong>8</strong></div>
+            <div class="role-permissions">
+                <span class="perm-tag">Bookings</span>
+                <span class="perm-tag">Partners</span>
+                <span class="perm-tag">Reports</span>
+                <span class="perm-tag">Assign Workers</span>
+            </div>
+            <div class="role-actions">
+                <button class="btn btn-view" onclick="switchTab('permissions', event)">View Permissions</button>
+            </div>
+        </div>
+
+        <!-- Staff Role -->
+        <div class="role-card staff">
+            <div class="role-card-top">
+                <div class="role-icon green">👷</div>
+                <div class="action-btns">
+                    <button class="btn btn-edit">Edit</button>
+                    <button class="btn btn-delete">Delete</button>
+                </div>
+            </div>
+            <div class="role-name">Staff</div>
+            <div class="role-desc">Limited access. Can view and update assigned bookings only.</div>
+            <div class="role-users">Users assigned: <strong>45</strong></div>
+            <div class="role-permissions">
+                <span class="perm-tag">View Bookings</span>
+                <span class="perm-tag">Update Status</span>
+                <span class="perm-tag">Own Profile</span>
+            </div>
+            <div class="role-actions">
+                <button class="btn btn-view" onclick="switchTab('permissions', event)">View Permissions</button>
+            </div>
+        </div>
+
+        <!-- Corporate Partner -->
+        <div class="role-card partner">
+            <div class="role-card-top">
+                <div class="role-icon purple">🏢</div>
+                <div class="action-btns">
+                    <button class="btn btn-edit">Edit</button>
+                    <button class="btn btn-delete">Delete</button>
+                </div>
+            </div>
+            <div class="role-name">Corporate Partner</div>
+            <div class="role-desc">Access to their own workers, bookings and payment details.</div>
+            <div class="role-users">Users assigned: <strong>12</strong></div>
+            <div class="role-permissions">
+                <span class="perm-tag">Own Bookings</span>
+                <span class="perm-tag">Workers</span>
+                <span class="perm-tag">Payments</span>
+                <span class="perm-tag">Own Reports</span>
+            </div>
+            <div class="role-actions">
+                <button class="btn btn-view" onclick="switchTab('permissions', event)">View Permissions</button>
+            </div>
+        </div>
+
+        <!-- Solo Partner -->
+        <div class="role-card custom">
+            <div class="role-card-top">
+                <div class="role-icon yellow">🧑‍🔧</div>
+                <div class="action-btns">
+                    <button class="btn btn-edit">Edit</button>
+                    <button class="btn btn-delete">Delete</button>
+                </div>
+            </div>
+            <div class="role-name">Solo Partner</div>
+            <div class="role-desc">Individual service provider. Can view assigned jobs and earnings only.</div>
+            <div class="role-users">Users assigned: <strong>56</strong></div>
+            <div class="role-permissions">
+                <span class="perm-tag">Assigned Jobs</span>
+                <span class="perm-tag">Own Earnings</span>
+                <span class="perm-tag">Own Profile</span>
+            </div>
+            <div class="role-actions">
+                <button class="btn btn-view" onclick="switchTab('permissions', event)">View Permissions</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===================================================
+     TAB 2 — PERMISSIONS MATRIX
+=================================================== -->
+<div class="tab-content" id="tab-permissions">
+    <div class="card">
+        <div class="card-header">
+            <h3>🛡️ Permission Matrix</h3>
+            <button class="btn-primary" style="font-size:13px;padding:8px 16px;" onclick="showToast('Permissions saved! ✅')">
+                Save Changes
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Module</th>
+                            <th>👑 Admin</th>
+                            <th>🧑‍💼 Manager</th>
+                            <th>👷 Staff</th>
+                            <th>🏢 Corp Partner</th>
+                            <th>🧑‍🔧 Solo Partner</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><div class="module-name">📅 Bookings</div></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                        </tr>
+                        <tr>
+                            <td><div class="module-name">👥 Manage Users</div></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                        </tr>
+                        <tr>
+                            <td><div class="module-name">🛠️ Services</div></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                        </tr>
+                        <tr>
+                            <td><div class="module-name">💳 Payments</div></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                        </tr>
+                        <tr>
+                            <td><div class="module-name">📋 Reports</div></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                        </tr>
+                        <tr>
+                            <td><div class="module-name">⚙️ Settings</div></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                        </tr>
+                        <tr>
+                            <td><div class="module-name">🏢 Partners</div></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                        </tr>
+                        <tr>
+                            <td><div class="module-name">💰 Rate Plans</div></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                            <td><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================================================
+     TAB 3 — USER ACCESS
+=================================================== -->
+<div class="tab-content" id="tab-users">
+    <div class="card">
+        <div class="card-header">
+            <h3>👥 User Access List</h3>
+        </div>
+        <div class="card-body">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input"
+                           placeholder="Search users..."
+                           onkeyup="filterTable('userTable', this.value)">
+                </div>
+                <select class="filter-select" onchange="filterByCol('userTable', 3, this.value)">
+                    <option value="">All Roles</option>
+                    <option>Admin</option>
+                    <option>Manager</option>
+                    <option>Staff</option>
+                    <option>Corporate Partner</option>
+                    <option>Solo Partner</option>
+                </select>
+                <select class="filter-select" onchange="filterByCol('userTable', 4, this.value)">
+                    <option value="">All Status</option>
+                    <option>Active</option>
+                    <option>Inactive</option>
+                </select>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="userTable">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="avatar">SA</div>
+                                    <div>
+                                        <div class="name-text">Super Admin</div>
+                                        <div class="sub-text">System Owner</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>superadmin</td>
+                            <td>admin@sahayak.com</td>
+                            <td><span class="badge badge-admin">Admin</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>Today, 10:30 AM</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-edit">Edit Role</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="avatar">RK</div>
+                                    <div>
+                                        <div class="name-text">Rajesh Kumar</div>
+                                        <div class="sub-text">Operations</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>rajesh.k</td>
+                            <td>rajesh@sahayak.com</td>
+                            <td><span class="badge badge-manager">Manager</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>Today, 9:15 AM</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-edit">Edit Role</button>
+                                    <button class="btn btn-delete">Revoke</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="avatar">PS</div>
+                                    <div>
+                                        <div class="name-text">Priya Sharma</div>
+                                        <div class="sub-text">Field Staff</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>priya.s</td>
+                            <td>priya@sahayak.com</td>
+                            <td><span class="badge badge-staff">Staff</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>Yesterday</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-edit">Edit Role</button>
+                                    <button class="btn btn-delete">Revoke</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="avatar">TC</div>
+                                    <div>
+                                        <div class="name-text">TechCare Solutions</div>
+                                        <div class="sub-text">Corporate</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>techcare</td>
+                            <td>hr@techcare.com</td>
+                            <td><span class="badge badge-partner">Corp Partner</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>2 days ago</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-edit">Edit Role</button>
+                                    <button class="btn btn-delete">Revoke</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="avatar">AM</div>
+                                    <div>
+                                        <div class="name-text">Amit Mishra</div>
+                                        <div class="sub-text">Electrician</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>amit.m</td>
+                            <td>amit@gmail.com</td>
+                            <td><span class="badge badge-partner">Solo Partner</span></td>
+                            <td><span class="badge badge-inactive">Inactive</span></td>
+                            <td>1 week ago</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-edit">Edit Role</button>
+                                    <button class="btn btn-delete">Revoke</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CREATE ROLE MODAL ===== -->
+<div class="modal" id="roleModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>🎭 Create New Role</h2>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+
+            <div class="form-group">
+                <label>Role Name</label>
+                <input type="text" placeholder="e.g. Supervisor, Field Manager...">
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea rows="2" placeholder="What can this role do?"></textarea>
+            </div>
+
+            <div class="section-divider"></div>
+            <div class="section-title">Assign Permissions</div>
+
+            <div class="perm-grid">
+                <label class="perm-check"><input type="checkbox"> 📅 Bookings</label>
+                <label class="perm-check"><input type="checkbox"> 👥 Manage Users</label>
+                <label class="perm-check"><input type="checkbox"> 🛠️ Services</label>
+                <label class="perm-check"><input type="checkbox"> 💳 Payments</label>
+                <label class="perm-check"><input type="checkbox"> 📋 Reports</label>
+                <label class="perm-check"><input type="checkbox"> ⚙️ Settings</label>
+                <label class="perm-check"><input type="checkbox"> 🏢 Partners</label>
+                <label class="perm-check"><input type="checkbox"> 💰 Rate Plans</label>
+                <label class="perm-check"><input type="checkbox"> 🗑️ Delete Records</label>
+                <label class="perm-check"><input type="checkbox"> 📤 Export Data</label>
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button class="btn-submit" onclick="showToast('Role created! ✅'); closeModal();">
+                Create Role
+            </button>
+            <button class="btn-cancel-modal" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    function switchTab(tab, event) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    function openModal() {
+        document.getElementById('roleModal').classList.add('open');
+    }
+
+    function closeModal() {
+        document.getElementById('roleModal').classList.remove('open');
+    }
+
+    window.onclick = function(e) {
+        const modal = document.getElementById('roleModal');
+        if (e.target === modal) closeModal();
+    }
+
+    function filterTable(tableId, query) {
+        const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+        query = query.toLowerCase();
+        rows.forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+        });
+    }
+
+    function filterByCol(tableId, colIndex, value) {
+        const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+        rows.forEach(row => {
+            const cell = row.cells[colIndex];
+            row.style.display = (!value || cell.textContent.includes(value)) ? '' : 'none';
+        });
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+</script>
+
+{% endblock %}

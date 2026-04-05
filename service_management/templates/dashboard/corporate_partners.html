@@ -1,0 +1,496 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Corporate Partners | ServiceMS{% endblock %}
+{% include 'layout/topbar.html' %}
+
+{% block content %}
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+        --bg:#f4f6f8;
+        --surface:#ffffff;
+        --surface2:#eaf2fb;
+        --border:#d0e3f5;
+        --accent:#1e88e5;
+        --accent2:#1565c0;
+        --success:#22d172;
+        --warning:#f5a623;
+        --danger:#ff4d6d;
+        --text:#1a1a2e;
+        --muted:#888888;
+        --font-head:'Poppins',sans-serif;
+        --font-body:'DM Sans',sans-serif;
+    }
+
+    body {
+        background: var(--bg);
+        font-family: var(--font-body);
+        color: var(--text);
+    }
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+        margin-bottom: 28px;
+    }
+
+    .page-header h1 {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 2rem;
+    }
+
+    .page-header p {
+        color: var(--muted);
+        margin-top: 6px;
+    }
+
+    /* ===== STATS ROW ===== */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.08);
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+    }
+
+    .stat-value {
+        font-family: var(--font-head);
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .stat-card:nth-child(1) .stat-value { color: var(--accent); }
+    .stat-card:nth-child(2) .stat-value { color: var(--success); }
+    .stat-card:nth-child(3) .stat-value { color: var(--warning); }
+    .stat-card:nth-child(4) .stat-value { color: var(--accent2); }
+
+    /* ===== CARD ===== */
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.08);
+        margin-bottom: 24px;
+    }
+
+    .card-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface2);
+        border-radius: 14px 14px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        font-family: var(--font-head);
+        color: var(--accent);
+    }
+
+    .card-body { padding: 24px; }
+
+    /* ===== SEARCH & FILTER BAR ===== */
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-bar input,
+    .filter-bar select {
+        padding: 9px 14px;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        outline: none;
+        transition: border-color 0.2s;
+        background: white;
+    }
+
+    .filter-bar input { flex: 1; min-width: 200px; }
+
+    .filter-bar input:focus,
+    .filter-bar select:focus {
+        border-color: var(--accent);
+    }
+
+    .add-btn {
+        padding: 9px 20px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--font-body);
+        white-space: nowrap;
+        transition: transform 0.2s;
+    }
+
+    .add-btn:hover { transform: translateY(-1px); }
+
+    /* ===== TABLE ===== */
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    thead {
+        background: var(--surface2);
+    }
+
+    thead th {
+        padding: 12px 16px;
+        text-align: left;
+        font-family: var(--font-head);
+        font-size: 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+        border-bottom: 1px solid #f0f4f8;
+        transition: background 0.15s;
+    }
+
+    tbody tr:hover { background: var(--surface2); }
+
+    tbody td {
+        padding: 14px 16px;
+        color: var(--text);
+        vertical-align: middle;
+    }
+
+    /* ===== PARTNER AVATAR ===== */
+    .partner-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .partner-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .partner-name { font-weight: 600; color: var(--text); }
+    .partner-email { font-size: 12px; color: var(--muted); }
+
+    /* ===== STATUS BADGE ===== */
+    .badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-active {
+        background: rgba(34,209,114,0.12);
+        color: #15a058;
+    }
+
+    .badge-pending {
+        background: rgba(245,166,35,0.12);
+        color: #c47d00;
+    }
+
+    .badge-inactive {
+        background: rgba(255,77,109,0.12);
+        color: #cc2244;
+    }
+
+    /* ===== ACTION BUTTONS ===== */
+    .action-btns { display: flex; gap: 8px; }
+
+    .btn-view {
+        padding: 5px 12px;
+        background: var(--surface2);
+        color: var(--accent);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: var(--font-body);
+        transition: 0.2s;
+    }
+
+    .btn-edit {
+        padding: 5px 12px;
+        background: rgba(34,209,114,0.1);
+        color: #15a058;
+        border: 1px solid rgba(34,209,114,0.3);
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: var(--font-body);
+        transition: 0.2s;
+    }
+
+    .btn-delete {
+        padding: 5px 12px;
+        background: rgba(255,77,109,0.1);
+        color: #cc2244;
+        border: 1px solid rgba(255,77,109,0.3);
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: var(--font-body);
+        transition: 0.2s;
+    }
+
+    .btn-view:hover { background: var(--accent); color: white; }
+    .btn-edit:hover { background: #22d172; color: white; }
+    .btn-delete:hover { background: #ff4d6d; color: white; }
+
+    /* ===== PAGINATION ===== */
+    .pagination {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 6px;
+        margin-top: 20px;
+    }
+
+    .page-btn {
+        padding: 6px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: white;
+        color: var(--text);
+        font-size: 13px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .page-btn:hover, .page-btn.active {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <h1>🏢 Corporate Partners</h1>
+    <p>Manage all corporate partner accounts and their status</p>
+</div>
+
+<!-- Stats Row -->
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-label">Total Corporate</div>
+        <div class="stat-value">{{ partners.count|default:"0" }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Active</div>
+        <div class="stat-value">{{ active_count|default:"0" }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Pending</div>
+        <div class="stat-value">{{ pending_count|default:"0" }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Inactive</div>
+        <div class="stat-value">{{ inactive_count|default:"0" }}</div>
+    </div>
+</div>
+
+<!-- Partners Table Card -->
+<div class="card">
+    <div class="card-header">
+        <h3>Corporate Partners List</h3>
+        <button class="add-btn">+ Add Corporate Partner</button>
+    </div>
+    <div class="card-body">
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <input type="text" placeholder="🔍 Search by name or email...">
+            <select>
+                <option value="">All Status</option>
+                <option>Active</option>
+                <option>Pending</option>
+                <option>Inactive</option>
+            </select>
+            <select>
+                <option value="">All Services</option>
+                <option>Electrician</option>
+                <option>Plumber</option>
+                <option>Carpenter</option>
+                <option>Painter</option>
+            </select>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Company</th>
+                        <th>Contact Person</th>
+                        <th>Service Type</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if partners %}
+                        {% for partner in partners %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="partner-info">
+                                    <div class="partner-avatar">{{ partner.name|slice:":2"|upper }}</div>
+                                    <div>
+                                        <div class="partner-name">{{ partner.name }}</div>
+                                        <div class="partner-email">{{ partner.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ partner.contact_person }}</td>
+                            <td>{{ partner.service_type }}</td>
+                            <td>{{ partner.location }}</td>
+                            <td>
+                                <span class="badge badge-{{ partner.status }}">
+                                    {{ partner.status|capfirst }}
+                                </span>
+                            </td>
+                            <td>{{ partner.created_at|date:"d M Y" }}</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn-view">View</button>
+                                    <button class="btn-edit">Edit</button>
+                                    <button class="btn-delete">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Sample static rows for now -->
+                        <tr>
+                            <td>1</td>
+                            <td>
+                                <div class="partner-info">
+                                    <div class="partner-avatar">TC</div>
+                                    <div>
+                                        <div class="partner-name">TechCare Solutions</div>
+                                        <div class="partner-email">techcare@email.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Rajesh Kumar</td>
+                            <td>Electrician</td>
+                            <td>Mumbai</td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>12 Jan 2025</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn-view">View</button>
+                                    <button class="btn-edit">Edit</button>
+                                    <button class="btn-delete">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>
+                                <div class="partner-info">
+                                    <div class="partner-avatar">HS</div>
+                                    <div>
+                                        <div class="partner-name">HomeServe India</div>
+                                        <div class="partner-email">homeserve@email.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Priya Sharma</td>
+                            <td>Plumber</td>
+                            <td>Delhi</td>
+                            <td><span class="badge badge-pending">Pending</span></td>
+                            <td>05 Feb 2025</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn-view">View</button>
+                                    <button class="btn-edit">Edit</button>
+                                    <button class="btn-delete">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>
+                                <div class="partner-info">
+                                    <div class="partner-avatar">BF</div>
+                                    <div>
+                                        <div class="partner-name">BuildFix Corp</div>
+                                        <div class="partner-email">buildfx@email.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Amit Verma</td>
+                            <td>Carpenter</td>
+                            <td>Bangalore</td>
+                            <td><span class="badge badge-inactive">Inactive</span></td>
+                            <td>20 Mar 2025</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn-view">View</button>
+                                    <button class="btn-edit">Edit</button>
+                                    <button class="btn-delete">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <button class="page-btn">← Prev</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">Next →</button>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

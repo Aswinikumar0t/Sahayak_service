@@ -1,0 +1,614 @@
+{% load static %}
+
+<style>
+    /* Login Popup Modal Styles */
+    .login-modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+    }
+
+    .login-modal.open {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .login-modal-content {
+        background: white;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 420px;  /* Reduced from 450px */
+        max-height: 85vh;  /* Reduced from 90vh */
+        overflow-y: auto;
+        position: relative;
+        animation: slideUp 0.3s ease;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Custom Scrollbar - Hide when not needed */
+    .login-modal-content::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .login-modal-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .login-modal-content::-webkit-scrollbar-thumb {
+        background: #1e88e5;
+        border-radius: 10px;
+    }
+
+    /* Close Button */
+    .close-login-modal {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+        transition: transform 0.2s, color 0.2s;
+        z-index: 10;
+    }
+
+    .close-login-modal:hover {
+        transform: rotate(90deg);
+        color: #1e88e5;
+    }
+
+    /* Logo Section - Compact */
+    .login-logo {
+        text-align: center;
+        padding: 15px 30px 0px 30px;
+    }
+
+    .login-logo img {
+        height: 50px;  /* Reduced from 65px */
+        object-fit: contain;
+    }
+
+    /* Heading Section - Compact */
+    .login-heading {
+        text-align: center;
+        padding: 0 30px 5px 30px;
+    }
+
+    .login-heading h2 {
+        color: #1e88e5;
+        margin: 0;
+        font-size: 22px;  /* Reduced from 24px */
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .login-heading p {
+        color: #666;
+        margin: 2px 0 0;
+        font-size: 13px;  /* Reduced from 14px */
+    }
+
+    /* Form Body - Compact */
+    .login-modal-body {
+        padding: 5px 25px 20px 25px;  /* Reduced padding */
+    }
+
+    /* Form Groups - Compact */
+    .form-group {
+        margin-bottom: 12px;  /* Reduced from 20px */
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 12px;  /* Reduced from 13px */
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 4px;  /* Reduced from 8px */
+    }
+
+    .input-icon input {
+        width: 100%;
+        padding: 10px 10px 10px 38px;  /* Reduced padding */
+        border: 1.5px solid #e0e0e0;
+        border-radius: 8px;  /* Reduced from 10px */
+        font-size: 13px;  /* Reduced from 14px */
+        font-family: 'DM Sans', sans-serif;
+        transition: all 0.3s;
+    }
+
+    .input-icon i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #999;
+        font-size: 14px;  /* Reduced from 16px */
+    }
+
+    /* Password Toggle */
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #999;
+        font-size: 14px;
+    }
+
+    /* Options Row - Compact */
+    .login-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;  /* Reduced from 25px */
+        font-size: 12px;  /* Reduced from 13px */
+    }
+
+    .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    .remember-me input {
+        width: 14px;
+        height: 14px;
+        cursor: pointer;
+    }
+
+    /* Login Button - Compact */
+    .login-btn-submit {
+        width: 100%;
+        padding: 10px;  /* Reduced from 14px */
+        background: linear-gradient(135deg, #1e88e5, #1565c0);
+        color: white;
+        border: none;
+        border-radius: 8px;  /* Reduced from 10px */
+        font-size: 14px;  /* Reduced from 16px */
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-family: 'Poppins', sans-serif;
+        margin-bottom: 12px;  /* Reduced from 20px */
+    }
+
+    .login-btn-submit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(30,136,229,0.3);
+    }
+
+    /* Divider - Compact */
+    .login-divider {
+        text-align: center;
+        position: relative;
+        margin: 12px 0;  /* Reduced from 20px */
+    }
+
+    .login-divider span {
+        background: white;
+        padding: 0 12px;
+        position: relative;
+        color: #999;
+        font-size: 12px;  /* Reduced from 13px */
+    }
+
+    /* Social Login - Compact */
+    .social-login {
+        display: flex;
+        gap: 12px;  /* Reduced from 15px */
+        margin-bottom: 12px;  /* Reduced from 20px */
+    }
+
+    .social-btn {
+        flex: 1;
+        padding: 8px;  /* Reduced from 10px */
+        border: 1.5px solid #e0e0e0;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 12px;  /* Reduced from 14px */
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    /* Register Link - Compact */
+    .register-link {
+        text-align: center;
+        margin-top: 12px;  /* Reduced from 20px */
+        padding-top: 12px;  /* Reduced from 20px */
+        border-top: 1px solid #e0e0e0;
+        font-size: 12px;  /* Reduced from 14px */
+        color: #666;
+    }
+
+    /* Error/Success Messages - Compact */
+    .error-message,
+    .success-message {
+        padding: 8px 10px;  /* Reduced padding */
+        border-radius: 6px;
+        font-size: 12px;
+        margin-bottom: 10px;
+        display: none;
+    }
+
+    /* Loading State */
+    .loading {
+        display: none;
+        text-align: center;
+        margin-top: 5px;
+        font-size: 12px;
+    }
+
+    .loading-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #e0e0e0;
+        border-top-color: #1e88e5;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        display: inline-block;
+        margin-right: 6px;
+    }
+
+    /* Forgot Password Modal */
+    .forgot-modal {
+        display: none;
+        position: fixed;
+        z-index: 2100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+    }
+
+    .forgot-modal.open {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .forgot-modal-content {
+        background: white;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 380px;
+        padding: 25px;
+        text-align: center;
+        animation: slideUp 0.3s ease;
+    }
+
+    .forgot-modal-content h3 {
+        font-size: 20px;
+        color: #1e88e5;
+        margin-bottom: 12px;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .forgot-modal-content p {
+        color: #666;
+        margin-bottom: 15px;
+        font-size: 13px;
+    }
+
+    .forgot-modal-content input {
+        width: 100%;
+        padding: 10px;
+        border: 1.5px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-size: 13px;
+    }
+
+    .forgot-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .forgot-buttons button {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .forgot-submit {
+        background: #1e88e5;
+        color: white;
+        border: none;
+    }
+
+    .forgot-cancel {
+        background: #f0f0f0;
+        border: none;
+        color: #666;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+        .login-modal-body {
+            padding: 5px 20px 15px 20px;
+        }
+        .login-logo {
+            padding: 10px 20px 0px 20px;
+        }
+        .login-logo img {
+            height: 45px;
+        }
+        .login-heading h2 {
+            font-size: 20px;
+        }
+        .login-heading p {
+            font-size: 12px;
+        }
+        .login-btn-submit {
+            padding: 10px;
+            font-size: 14px;
+        }
+    }
+</style>
+
+<!-- Login Modal -->
+<div id="loginModal" class="login-modal">
+    <div class="login-modal-content">
+        <!-- Close Button -->
+        <span class="close-login-modal" onclick="closeLoginModal()">&times;</span>
+        
+        <!-- Logo Section -->
+        <div class="login-logo">
+            <img src="{% static 'icon/navbar_logo.png' %}" alt="Sahayak Logo">
+        </div>
+        
+        <!-- Heading Section -->
+        <div class="login-heading">
+            <h2>Welcome Back!</h2>
+            <p>Login to your account</p>
+        </div>
+        
+        <!-- Form Body -->
+        <div class="login-modal-body">
+            <!-- Error Message -->
+            <div id="loginError" class="error-message"></div>
+            <!-- Success Message -->
+            <div id="loginSuccess" class="success-message"></div>
+            
+            <form id="loginForm" method="POST">
+                {% csrf_token %}
+                <!-- Email/Phone Field -->
+                <div class="form-group">
+                    <label>Email or Phone Number *</label>
+                    <div class="input-icon">
+                        <i>📧</i>
+                        <input type="text" id="loginEmail" name="email" placeholder="Enter your email or phone number" required>
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label>Password *</label>
+                    <div class="input-icon">
+                        <i>🔒</i>
+                        <input type="password" id="loginPassword" name="password" placeholder="Enter your password" required>
+                        <span class="password-toggle" onclick="togglePassword('loginPassword')">👁️</span>
+                    </div>
+                </div>
+
+                <!-- Options -->
+                <div class="login-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember"> Remember me
+                    </label>
+                    <a href="#" class="forgot-link" onclick="openForgotModal(); return false;">Forgot Password?</a>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="login-btn-submit">Login →</button>
+
+                <!-- Loading -->
+                <div id="loginLoading" class="loading">
+                    <span class="loading-spinner"></span> Logging in...
+                </div>
+
+                <!-- Divider -->
+                <div class="login-divider">
+                    <span>Or continue with</span>
+                </div>
+
+                <!-- Social Login -->
+                <div class="social-login">
+                    <button type="button" class="social-btn google" onclick="socialLogin('google')">
+                        🅶 Google
+                    </button>
+                    <button type="button" class="social-btn facebook" onclick="socialLogin('facebook')">
+                        𝕗 Facebook
+                    </button>
+                </div>
+
+                <!-- Register Link -->
+                <div class="register-link">
+                    Don't have an account? <a href="#" onclick="closeLoginModal(); openRegisterModal(); return false;">Sign up now</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div id="forgotModal" class="forgot-modal">
+    <div class="forgot-modal-content">
+        <h3>🔐 Reset Password</h3>
+        <p>Enter your email address and we'll send you a link to reset your password.</p>
+        <input type="email" id="resetEmail" placeholder="Enter your email address">
+        <div class="forgot-buttons">
+            <button class="forgot-cancel" onclick="closeForgotModal()">Cancel</button>
+            <button class="forgot-submit" onclick="sendResetLink()">Send Reset Link</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Open Login Modal
+    function openLoginModal() {
+        document.getElementById('loginModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('loginError').classList.remove('show');
+        document.getElementById('loginSuccess').classList.remove('show');
+    }
+
+    // Close Login Modal
+    function closeLoginModal() {
+        document.getElementById('loginModal').classList.remove('open');
+        document.body.style.overflow = '';
+        document.getElementById('loginForm').reset();
+    }
+
+    // Toggle Password Visibility
+    function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const toggle = field.nextElementSibling;
+        if (field.type === 'password') {
+            field.type = 'text';
+            toggle.innerHTML = '🙈';
+        } else {
+            field.type = 'password';
+            toggle.innerHTML = '👁️';
+        }
+    }
+
+    // Forgot Password Modal (placeholder)
+    function openForgotModal() {
+        alert('Forgot password feature coming soon!');
+    }
+
+    function closeForgotModal() {
+        document.getElementById('forgotModal').classList.remove('open');
+    }
+
+    function sendResetLink() {
+        alert('Password reset feature coming soon!');
+    }
+
+    function socialLogin(provider) {
+        alert(`Login with ${provider} coming soon!`);
+    }
+
+    // Get CSRF Token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Handle Login Form Submission
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        if (!email || !password) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = 'Please enter email and password';
+            errorDiv.classList.add('show');
+            setTimeout(() => errorDiv.classList.remove('show'), 3000);
+            return;
+        }
+        
+        const submitBtn = document.querySelector('.login-btn-submit');
+        const loading = document.getElementById('loginLoading');
+        const errorDiv = document.getElementById('loginError');
+        const successDiv = document.getElementById('loginSuccess');
+        
+        submitBtn.style.display = 'none';
+        loading.classList.add('show');
+        errorDiv.classList.remove('show');
+        successDiv.classList.remove('show');
+        
+        try {
+            const response = await fetch('/accounts/api/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ email, password })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                successDiv.textContent = 'Login successful! Redirecting...';
+                successDiv.classList.add('show');
+                
+                // Store user info in localStorage
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                setTimeout(() => {
+                    closeLoginModal();
+                    window.location.reload();
+                }, 1500);
+            } else {
+                const errorMsg = typeof data.errors === 'string' ? data.errors : 'Invalid email or password';
+                errorDiv.textContent = errorMsg;
+                errorDiv.classList.add('show');
+                submitBtn.style.display = 'block';
+                loading.classList.remove('show');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            errorDiv.textContent = 'Network error. Please try again.';
+            errorDiv.classList.add('show');
+            submitBtn.style.display = 'block';
+            loading.classList.remove('show');
+        }
+    });
+
+    // Close modal on outside click
+    window.onclick = function(event) {
+        const loginModal = document.getElementById('loginModal');
+        if (event.target === loginModal) {
+            closeLoginModal();
+        }
+    }
+</script>

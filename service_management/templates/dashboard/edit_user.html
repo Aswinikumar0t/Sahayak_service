@@ -1,0 +1,16 @@
+<h2>Edit User</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <input type="text" name="username" value="{{ user.username }}" required><br><br>
+    <input type="email" name="email" value="{{ user.email }}" required><br><br>
+
+    <select name="role" required>
+        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+        <option value="manager" {% if user.role == 'manager' %}selected{% endif %}>Manager</option>
+        <option value="staff" {% if user.role == 'staff' %}selected{% endif %}>Staff</option>
+    </select><br><br>
+
+    <button type="submit">Update User</button>
+</form>

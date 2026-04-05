@@ -1,0 +1,1433 @@
+
+{% extends 'layout/base.html' %}
+{% block title %}Payments & Billing | ServiceMS{% endblock %}
+{% block content %}
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --surface2: #eaf2fb;
+        --border: #d0e3f5;
+        --accent: #1e88e5;
+        --accent2: #1565c0;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --purple: #8b5cf6;
+        --text: #1a1a2e;
+        --muted: #888888;
+        --font-head: 'Poppins', sans-serif;
+        --font-body: 'DM Sans', sans-serif;
+    }
+
+    body {
+        background: var(--bg);
+        font-family: var(--font-body);
+        color: var(--text);
+    }
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .page-header h1 {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 2rem;
+    }
+
+    .page-header p {
+        color: var(--muted);
+        margin-top: 6px;
+        font-size: 14px;
+    }
+
+    .header-actions { display: flex; gap: 10px; }
+
+    .btn-export {
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        font-family: var(--font-body);
+        cursor: pointer;
+        border: none;
+        transition: 0.2s;
+    }
+
+    .btn-pdf   { background: rgba(239,68,68,0.1);  color: #dc2626; border: 1px solid rgba(239,68,68,0.3); }
+    .btn-excel { background: rgba(34,197,94,0.1);  color: #16a34a; border: 1px solid rgba(34,197,94,0.3); }
+    .btn-pdf:hover   { background: #ef4444; color: white; }
+    .btn-excel:hover { background: #22c55e; color: white; }
+
+    .btn-generate {
+        padding: 11px 22px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: var(--font-body);
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(30,136,229,0.3);
+        transition: 0.2s;
+    }
+
+    .btn-generate:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(30,136,229,0.4);
+    }
+
+    /* ===== STAT CARDS ===== */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px 24px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.06);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 4px;
+        height: 100%;
+        border-radius: 14px 0 0 14px;
+    }
+
+    .stat-card.blue::before   { background: var(--accent);  }
+    .stat-card.green::before  { background: var(--success);  }
+    .stat-card.yellow::before { background: var(--warning);  }
+    .stat-card.red::before    { background: var(--danger);   }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(30,136,229,0.12);
+    }
+
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .stat-icon.blue   { background: rgba(30,136,229,0.12); }
+    .stat-icon.green  { background: rgba(34,197,94,0.12);  }
+    .stat-icon.yellow { background: rgba(245,158,11,0.12); }
+    .stat-icon.red    { background: rgba(239,68,68,0.12);  }
+
+    .stat-label {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .stat-value {
+        font-family: var(--font-head);
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-trend { font-size: 11px; margin-top: 4px; }
+    .trend-up   { color: var(--success); }
+    .trend-down { color: var(--danger);  }
+
+    .stat-value.blue   { color: var(--accent);  }
+    .stat-value.green  { color: var(--success);  }
+    .stat-value.yellow { color: var(--warning);  }
+    .stat-value.red    { color: var(--danger);   }
+
+    /* ===== TABS ===== */
+    .tab-wrapper {
+        display: flex;
+        gap: 0;
+        margin-bottom: 24px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 6px;
+        width: fit-content;
+        box-shadow: 0 2px 8px rgba(30,136,229,0.08);
+    }
+
+    .tab-btn {
+        padding: 10px 22px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        font-family: var(--font-body);
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .tab-btn:hover { background: var(--surface2); color: var(--accent); }
+
+    .tab-btn.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(30,136,229,0.3);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ===== CARD ===== */
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(30,136,229,0.06);
+        margin-bottom: 20px;
+    }
+
+    .card-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface2);
+        border-radius: 14px 14px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 16px;
+    }
+
+    .card-body { padding: 20px 24px; }
+
+    /* ===== FILTER BAR ===== */
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .search-wrapper {
+        flex: 1;
+        position: relative;
+        min-width: 200px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: #bbb;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 10px 14px 10px 42px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        outline: none;
+        background: var(--bg);
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(30,136,229,0.1);
+        background: white;
+    }
+
+    .filter-select {
+        padding: 10px 16px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        outline: none;
+        background: var(--bg);
+        color: var(--text);
+        cursor: pointer;
+        min-width: 150px;
+        transition: border-color 0.2s;
+    }
+
+    .filter-select:focus { border-color: var(--accent); }
+
+    /* ===== TABLE ===== */
+    .table-wrapper { overflow-x: auto; }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    thead { background: var(--surface2); }
+
+    thead th {
+        padding: 12px 16px;
+        text-align: left;
+        font-family: var(--font-head);
+        font-size: 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+        border-bottom: 1px solid #f0f4f8;
+        transition: background 0.15s;
+    }
+
+    tbody tr:hover { background: var(--surface2); }
+
+    tbody td {
+        padding: 14px 16px;
+        color: var(--text);
+        vertical-align: middle;
+    }
+
+    /* ===== INVOICE ID ===== */
+    .invoice-id {
+        font-weight: 700;
+        color: var(--accent);
+        font-size: 13px;
+        font-family: var(--font-head);
+    }
+
+    /* ===== CUSTOMER CELL ===== */
+    .customer-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    .name-text  { font-weight: 600; font-size: 14px; }
+    .sub-text   { font-size: 12px; color: var(--muted); }
+
+    /* ===== AMOUNT CELL ===== */
+    .amount-cell { font-family: var(--font-head); font-weight: 700; }
+    .amount-cell.green  { color: var(--success); }
+    .amount-cell.yellow { color: var(--warning); }
+    .amount-cell.red    { color: var(--danger);  }
+
+    /* ===== BADGE ===== */
+    .badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .badge-paid      { background: rgba(34,197,94,0.12);  color: #16a34a; }
+    .badge-pending   { background: rgba(245,158,11,0.12); color: #d97706; }
+    .badge-overdue   { background: rgba(239,68,68,0.12);  color: #dc2626; }
+    .badge-partial   { background: rgba(59,130,246,0.12); color: #2563eb; }
+    .badge-b2b       { background: rgba(139,92,246,0.12); color: #7c3aed; }
+    .badge-b2c       { background: rgba(30,136,229,0.12); color: #1565c0; }
+
+    /* ===== ACTION BUTTONS ===== */
+    .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .btn {
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--font-body);
+        border: 1px solid;
+        transition: 0.2s;
+    }
+
+    .btn-view     { background: var(--surface2);          color: var(--accent); border-color: var(--border); }
+    .btn-download { background: rgba(34,197,94,0.1);       color: #16a34a;       border-color: rgba(34,197,94,0.3); }
+    .btn-remind   { background: rgba(245,158,11,0.1);      color: #d97706;       border-color: rgba(245,158,11,0.3); }
+    .btn-mark     { background: rgba(30,136,229,0.1);      color: var(--accent); border-color: rgba(30,136,229,0.3); }
+    .btn-cancel   { background: rgba(239,68,68,0.1);       color: #dc2626;       border-color: rgba(239,68,68,0.3); }
+
+    .btn-view:hover     { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-download:hover { background: #22c55e; color: white; border-color: #22c55e; }
+    .btn-remind:hover   { background: #f59e0b; color: white; border-color: #f59e0b; }
+    .btn-mark:hover     { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-cancel:hover   { background: #ef4444; color: white; border-color: #ef4444; }
+
+    /* ===== PAYOUT PROGRESS ===== */
+    .payout-progress {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .payout-item {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: box-shadow 0.2s;
+    }
+
+    .payout-item:hover {
+        box-shadow: 0 4px 16px rgba(30,136,229,0.1);
+    }
+
+    .payout-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .payout-info { flex: 1; }
+
+    .payout-name {
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .payout-meta {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 8px;
+    }
+
+    .payout-bar-bg {
+        height: 6px;
+        background: #eef2f7;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .payout-bar-fill {
+        height: 100%;
+        border-radius: 10px;
+        background: linear-gradient(to right, var(--accent), #90caf9);
+        transition: width 0.6s ease;
+    }
+
+    .payout-amount {
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    .payout-total {
+        font-family: var(--font-head);
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--accent);
+    }
+
+    .payout-paid {
+        font-size: 12px;
+        color: var(--success);
+        margin-top: 3px;
+    }
+
+    .payout-actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    /* ===== COMMISSION SUMMARY ===== */
+    .commission-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .commission-box {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        text-align: center;
+    }
+
+    .commission-box .comm-label {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .commission-box .comm-value {
+        font-family: var(--font-head);
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--accent);
+    }
+
+    .commission-box .comm-sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+
+    /* ===== MODAL ===== */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0; top: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.45);
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-content {
+        background: white;
+        border-radius: 18px;
+        width: 560px;
+        max-width: 95vw;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+        padding: 22px 28px 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--surface2);
+        border-radius: 18px 18px 0 0;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .modal-header h2 {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 18px;
+    }
+
+    .modal-close {
+        font-size: 24px;
+        cursor: pointer;
+        color: #aaa;
+        background: none;
+        border: none;
+    }
+
+    .modal-close:hover { color: #333; }
+
+    /* ===== INVOICE PREVIEW ===== */
+    .invoice-preview {
+        padding: 28px;
+    }
+
+    .invoice-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .invoice-company h2 {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 22px;
+        margin-bottom: 4px;
+    }
+
+    .invoice-company p {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.6;
+    }
+
+    .invoice-meta { text-align: right; }
+
+    .invoice-meta .inv-number {
+        font-family: var(--font-head);
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 6px;
+    }
+
+    .invoice-meta p {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .invoice-parties {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .invoice-party h4 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--muted);
+        margin-bottom: 8px;
+    }
+
+    .invoice-party p {
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--text);
+    }
+
+    .invoice-party strong {
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+
+    .invoice-table thead {
+        background: var(--surface2);
+    }
+
+    .invoice-table th {
+        padding: 10px 14px;
+        text-align: left;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--accent);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .invoice-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #f0f4f8;
+    }
+
+    .invoice-totals {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+        margin-bottom: 20px;
+    }
+
+    .total-row {
+        display: flex;
+        gap: 40px;
+        font-size: 13px;
+    }
+
+    .total-row.grand {
+        font-family: var(--font-head);
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--accent);
+        padding-top: 8px;
+        border-top: 2px solid var(--border);
+        margin-top: 4px;
+    }
+
+    .total-label { color: var(--muted); }
+
+    .invoice-footer-modal {
+        display: flex;
+        gap: 10px;
+        padding: 18px 28px;
+        border-top: 1px solid var(--border);
+        justify-content: flex-end;
+    }
+
+    .btn-print {
+        padding: 10px 20px;
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--font-body);
+    }
+
+    .btn-close-inv {
+        padding: 10px 20px;
+        background: #f0f0f0;
+        color: #555;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        cursor: pointer;
+    }
+
+    /* ===== TOAST ===== */
+    .toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: var(--success);
+        color: white;
+        padding: 14px 24px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 6px 20px rgba(34,197,94,0.4);
+        display: none;
+        z-index: 9999;
+        font-family: var(--font-body);
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1>💳 Payments & Billing</h1>
+        <p>Track payments, invoices and partner payouts</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn-export btn-pdf">📄 Export PDF</button>
+        <button class="btn-export btn-excel">📊 Export Excel</button>
+        <button class="btn-generate" onclick="openInvoiceModal()">🧾 Generate Invoice</button>
+    </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="stats-row">
+    <div class="stat-card blue">
+        <div class="stat-icon blue">💰</div>
+        <div>
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value blue">₹{{ total_revenue|default:"3,84,000" }}</div>
+            <div class="stat-trend trend-up">▲ 22% this year</div>
+        </div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon green">✅</div>
+        <div>
+            <div class="stat-label">Payments Received</div>
+            <div class="stat-value green">₹{{ received|default:"3,20,500" }}</div>
+            <div class="stat-trend trend-up">▲ 8% this month</div>
+        </div>
+    </div>
+    <div class="stat-card yellow">
+        <div class="stat-icon yellow">⏳</div>
+        <div>
+            <div class="stat-label">Pending Payments</div>
+            <div class="stat-value yellow">₹{{ pending|default:"48,200" }}</div>
+            <div class="stat-trend trend-down">▼ 3 invoices due</div>
+        </div>
+    </div>
+    <div class="stat-card red">
+        <div class="stat-icon red">🏦</div>
+        <div>
+            <div class="stat-label">Partner Payouts</div>
+            <div class="stat-value red">₹{{ payouts|default:"2,72,425" }}</div>
+            <div class="stat-trend">85% of revenue</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="tab-wrapper">
+    <button class="tab-btn active" onclick="switchTab('all', event)">💳 All Payments</button>
+    <button class="tab-btn" onclick="switchTab('invoices', event)">🧾 Invoices</button>
+    <button class="tab-btn" onclick="switchTab('payouts', event)">🏦 Partner Payouts</button>
+    <button class="tab-btn" onclick="switchTab('commission', event)">📊 Commission</button>
+</div>
+
+<!-- =====================================================
+     TAB 1 — ALL PAYMENTS
+===================================================== -->
+<div class="tab-content active" id="tab-all">
+    <div class="card">
+        <div class="card-header">
+            <h3>All Payments</h3>
+        </div>
+        <div class="card-body">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input"
+                           placeholder="Search by customer, booking ID..."
+                           onkeyup="filterTable('allTable', this.value)">
+                </div>
+                <select class="filter-select" onchange="filterByStatus('allTable', this.value)">
+                    <option value="">All Status</option>
+                    <option value="paid">✅ Paid</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="overdue">🔴 Overdue</option>
+                    <option value="partial">🔵 Partial</option>
+                </select>
+                <select class="filter-select">
+                    <option value="">All Methods</option>
+                    <option>Cash</option>
+                    <option>UPI</option>
+                    <option>Bank Transfer</option>
+                    <option>Card</option>
+                </select>
+                <select class="filter-select">
+                    <option value="">All Types</option>
+                    <option>B2B</option>
+                    <option>B2C</option>
+                </select>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="allTable">
+                    <thead>
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Customer</th>
+                            <th>Booking</th>
+                            <th>Service</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-status="paid">
+                            <td><span class="invoice-id">PAY-001</span></td>
+                            <td>
+                                <div class="customer-cell">
+                                    <div class="avatar">PK</div>
+                                    <div>
+                                        <div class="name-text">Priya Kumar</div>
+                                        <div class="sub-text">9845612345</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="invoice-id">#1003</span></td>
+                            <td>Carpenter</td>
+                            <td><span class="amount-cell green">₹1,200</span></td>
+                            <td>UPI</td>
+                            <td><span class="badge badge-b2c">B2C</span></td>
+                            <td>10 Mar 2025</td>
+                            <td><span class="badge badge-paid">Paid</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-view">View</button>
+                                    <button class="btn btn-download">Invoice</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-status="pending">
+                            <td><span class="invoice-id">PAY-002</span></td>
+                            <td>
+                                <div class="customer-cell">
+                                    <div class="avatar">IN</div>
+                                    <div>
+                                        <div class="name-text">Infosys Ltd</div>
+                                        <div class="sub-text">hr@infosys.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="invoice-id">#1001</span></td>
+                            <td>Security Guard</td>
+                            <td><span class="amount-cell yellow">₹25,000</span></td>
+                            <td>Bank Transfer</td>
+                            <td><span class="badge badge-b2b">B2B</span></td>
+                            <td>12 Mar 2025</td>
+                            <td><span class="badge badge-pending">Pending</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-view">View</button>
+                                    <button class="btn btn-remind">Remind</button>
+                                    <button class="btn btn-mark">Mark Paid</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-status="overdue">
+                            <td><span class="invoice-id">PAY-003</span></td>
+                            <td>
+                                <div class="customer-cell">
+                                    <div class="avatar">TC</div>
+                                    <div>
+                                        <div class="name-text">TCS Mumbai</div>
+                                        <div class="sub-text">admin@tcs.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="invoice-id">#1005</span></td>
+                            <td>Driver</td>
+                            <td><span class="amount-cell red">₹18,000</span></td>
+                            <td>Bank Transfer</td>
+                            <td><span class="badge badge-b2b">B2B</span></td>
+                            <td>01 Mar 2025</td>
+                            <td><span class="badge badge-overdue">Overdue</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-view">View</button>
+                                    <button class="btn btn-remind">Remind</button>
+                                    <button class="btn btn-cancel">Escalate</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-status="paid">
+                            <td><span class="invoice-id">PAY-004</span></td>
+                            <td>
+                                <div class="customer-cell">
+                                    <div class="avatar">AN</div>
+                                    <div>
+                                        <div class="name-text">Anjali Nair</div>
+                                        <div class="sub-text">9876543210</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="invoice-id">#1002</span></td>
+                            <td>Electrician</td>
+                            <td><span class="amount-cell green">₹500</span></td>
+                            <td>Cash</td>
+                            <td><span class="badge badge-b2c">B2C</span></td>
+                            <td>11 Mar 2025</td>
+                            <td><span class="badge badge-paid">Paid</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-view">View</button>
+                                    <button class="btn btn-download">Invoice</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-status="partial">
+                            <td><span class="invoice-id">PAY-005</span></td>
+                            <td>
+                                <div class="customer-cell">
+                                    <div class="avatar">WP</div>
+                                    <div>
+                                        <div class="name-text">Wipro Bangalore</div>
+                                        <div class="sub-text">contact@wipro.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="invoice-id">#1008</span></td>
+                            <td>Cleaning Staff</td>
+                            <td><span class="amount-cell blue" style="color:var(--accent);">₹12,000</span></td>
+                            <td>UPI</td>
+                            <td><span class="badge badge-b2b">B2B</span></td>
+                            <td>08 Mar 2025</td>
+                            <td><span class="badge badge-partial">Partial</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-view">View</button>
+                                    <button class="btn btn-mark">Mark Paid</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     TAB 2 — INVOICES
+===================================================== -->
+<div class="tab-content" id="tab-invoices">
+    <div class="card">
+        <div class="card-header">
+            <h3>🧾 Invoice List</h3>
+        </div>
+        <div class="card-body">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input"
+                           placeholder="Search invoices..."
+                           onkeyup="filterTable('invoiceTable', this.value)">
+                </div>
+                <select class="filter-select" onchange="filterByStatus('invoiceTable', this.value)">
+                    <option value="">All Status</option>
+                    <option value="paid">✅ Paid</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="overdue">🔴 Overdue</option>
+                </select>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="invoiceTable">
+                    <thead>
+                        <tr>
+                            <th>Invoice No</th>
+                            <th>Customer</th>
+                            <th>Service</th>
+                            <th>Subtotal</th>
+                            <th>GST (18%)</th>
+                            <th>Total</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-status="paid">
+                            <td><span class="invoice-id">SAH-0001</span></td>
+                            <td>
+                                <div class="customer-cell">
+                                    <div class="avatar">PK</div>
+                                    <div>
+                                        <div class="name-text">Priya Kumar</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Carpenter</td>
+                            <td>₹1,017</td>
+                            <td>₹183</td>
+                            <td><strong>₹1,200</strong></td>
+                            <td>15 Mar 2025</td>
+                            <td><span class="badge badge-paid">Paid</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-view" onclick="openViewInvoice()">View</button>
+                                    <button class="btn btn-download">Download</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-status="pending">
+                            <td><span class="invoice-id">SAH-0002</span></td>
+                            <td>
+                                <div class="customer-cell">
+                                    <div class="avatar">IN</div>
+                                    <div>
+                                        <div class="name-text">Infosys Ltd</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Security Guard</td>
+                            <td>₹21,186</td>
+                            <td>₹3,814</td>
+                            <td><strong>₹25,000</strong></td>
+                            <td>20 Mar 2025</td>
+                            <td><span class="badge badge-pending">Pending</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-view" onclick="openViewInvoice()">View</button>
+                                    <button class="btn btn-remind">Send Reminder</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-status="overdue">
+                            <td><span class="invoice-id">SAH-0003</span></td>
+                            <td>
+                                <div class="customer-cell">
+                                    <div class="avatar">TC</div>
+                                    <div>
+                                        <div class="name-text">TCS Mumbai</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Driver</td>
+                            <td>₹15,254</td>
+                            <td>₹2,746</td>
+                            <td><strong>₹18,000</strong></td>
+                            <td>05 Mar 2025</td>
+                            <td><span class="badge badge-overdue">Overdue</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-view" onclick="openViewInvoice()">View</button>
+                                    <button class="btn btn-cancel">Escalate</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     TAB 3 — PARTNER PAYOUTS
+===================================================== -->
+<div class="tab-content" id="tab-payouts">
+    <div class="card">
+        <div class="card-header">
+            <h3>🏦 Partner Payouts</h3>
+            <span style="font-size:13px;color:var(--muted);">85% of booking amount goes to partner</span>
+        </div>
+        <div class="card-body">
+            <div class="payout-progress">
+
+                <div class="payout-item">
+                    <div class="payout-avatar">TC</div>
+                    <div class="payout-info">
+                        <div class="payout-name">TechCare Solutions</div>
+                        <div class="payout-meta">Corporate Partner • 48 jobs • March 2025</div>
+                        <div class="payout-bar-bg">
+                            <div class="payout-bar-fill" style="width:88%;"></div>
+                        </div>
+                    </div>
+                    <div class="payout-amount">
+                        <div class="payout-total">₹24,140</div>
+                        <div class="payout-paid">₹21,240 paid</div>
+                    </div>
+                    <div class="payout-actions">
+                        <button class="btn btn-view">View</button>
+                        <button class="btn btn-mark">Pay Now</button>
+                    </div>
+                </div>
+
+                <div class="payout-item">
+                    <div class="payout-avatar">HS</div>
+                    <div class="payout-info">
+                        <div class="payout-name">HomeServe India</div>
+                        <div class="payout-meta">Corporate Partner • 36 jobs • March 2025</div>
+                        <div class="payout-bar-bg">
+                            <div class="payout-bar-fill" style="width:100%;background:linear-gradient(to right,#22c55e,#86efac);"></div>
+                        </div>
+                    </div>
+                    <div class="payout-amount">
+                        <div class="payout-total">₹15,938</div>
+                        <div class="payout-paid">✅ Fully paid</div>
+                    </div>
+                    <div class="payout-actions">
+                        <button class="btn btn-view">View</button>
+                        <button class="btn btn-download">Receipt</button>
+                    </div>
+                </div>
+
+                <div class="payout-item">
+                    <div class="payout-avatar">RK</div>
+                    <div class="payout-info">
+                        <div class="payout-name">Ramesh Kumar</div>
+                        <div class="payout-meta">Solo Partner • 22 jobs • March 2025</div>
+                        <div class="payout-bar-bg">
+                            <div class="payout-bar-fill" style="width:60%;"></div>
+                        </div>
+                    </div>
+                    <div class="payout-amount">
+                        <div class="payout-total">₹8,160</div>
+                        <div class="payout-paid">₹4,896 paid</div>
+                    </div>
+                    <div class="payout-actions">
+                        <button class="btn btn-view">View</button>
+                        <button class="btn btn-mark">Pay Now</button>
+                    </div>
+                </div>
+
+                <div class="payout-item">
+                    <div class="payout-avatar">SP</div>
+                    <div class="payout-info">
+                        <div class="payout-name">Suresh Patel</div>
+                        <div class="payout-meta">Solo Partner • 18 jobs • March 2025</div>
+                        <div class="payout-bar-bg">
+                            <div class="payout-bar-fill" style="width:100%;background:linear-gradient(to right,#22c55e,#86efac);"></div>
+                        </div>
+                    </div>
+                    <div class="payout-amount">
+                        <div class="payout-total">₹6,120</div>
+                        <div class="payout-paid">✅ Fully paid</div>
+                    </div>
+                    <div class="payout-actions">
+                        <button class="btn btn-view">View</button>
+                        <button class="btn btn-download">Receipt</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     TAB 4 — COMMISSION
+===================================================== -->
+<div class="tab-content" id="tab-commission">
+
+    <div class="commission-grid">
+        <div class="commission-box">
+            <div class="comm-label">Commission Rate</div>
+            <div class="comm-value">15%</div>
+            <div class="comm-sub">Per booking</div>
+        </div>
+        <div class="commission-box">
+            <div class="comm-label">Total Earned</div>
+            <div class="comm-value">₹57,600</div>
+            <div class="comm-sub">This year</div>
+        </div>
+        <div class="commission-box">
+            <div class="comm-label">This Month</div>
+            <div class="comm-value">₹7,230</div>
+            <div class="comm-sub">March 2025</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>📊 Commission Breakdown</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer</th>
+                            <th>Partner</th>
+                            <th>Service</th>
+                            <th>Booking Amount</th>
+                            <th>Partner Share (85%)</th>
+                            <th>Commission (15%)</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="invoice-id">#1003</span></td>
+                            <td>Priya Kumar</td>
+                            <td>Ramesh Kumar</td>
+                            <td>Carpenter</td>
+                            <td>₹1,200</td>
+                            <td style="color:var(--warning);font-weight:600;">₹1,020</td>
+                            <td style="color:var(--success);font-weight:700;">₹180</td>
+                            <td>10 Mar 2025</td>
+                        </tr>
+                        <tr>
+                            <td><span class="invoice-id">#1001</span></td>
+                            <td>Infosys Ltd</td>
+                            <td>TechCare Solutions</td>
+                            <td>Security Guard</td>
+                            <td>₹25,000</td>
+                            <td style="color:var(--warning);font-weight:600;">₹21,250</td>
+                            <td style="color:var(--success);font-weight:700;">₹3,750</td>
+                            <td>12 Mar 2025</td>
+                        </tr>
+                        <tr>
+                            <td><span class="invoice-id">#1002</span></td>
+                            <td>Anjali Nair</td>
+                            <td>TechCare Solutions</td>
+                            <td>Electrician</td>
+                            <td>₹500</td>
+                            <td style="color:var(--warning);font-weight:600;">₹425</td>
+                            <td style="color:var(--success);font-weight:700;">₹75</td>
+                            <td>11 Mar 2025</td>
+                        </tr>
+                        <tr>
+                            <td><span class="invoice-id">#1008</span></td>
+                            <td>Wipro Bangalore</td>
+                            <td>HomeServe India</td>
+                            <td>Cleaning Staff</td>
+                            <td>₹12,000</td>
+                            <td style="color:var(--warning);font-weight:600;">₹10,200</td>
+                            <td style="color:var(--success);font-weight:700;">₹1,800</td>
+                            <td>08 Mar 2025</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== INVOICE VIEW MODAL ===== -->
+<div class="modal" id="invoiceModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>🧾 Invoice SAH-0001</h2>
+            <button class="modal-close" onclick="closeInvoiceModal()">&times;</button>
+        </div>
+        <div class="invoice-preview">
+            <div class="invoice-top">
+                <div class="invoice-company">
+                    <h2>Sahayak Services</h2>
+                    <p>contact@sahayak.com<br>+91 9876543210<br>Mumbai, Maharashtra - 400001<br>GST: 27AAPFU0939F1ZV</p>
+                </div>
+                <div class="invoice-meta">
+                    <div class="inv-number">SAH-0001</div>
+                    <p>Date: 10 Mar 2025</p>
+                    <p>Due: 15 Mar 2025</p>
+                    <p style="margin-top:8px;"><span class="badge badge-paid">Paid</span></p>
+                </div>
+            </div>
+
+            <div class="invoice-parties">
+                <div class="invoice-party">
+                    <h4>Bill To</h4>
+                    <p><strong>Priya Kumar</strong><br>9845612345<br>Andheri West, Mumbai</p>
+                </div>
+                <div class="invoice-party">
+                    <h4>Service By</h4>
+                    <p><strong>Ramesh Kumar</strong><br>Solo Partner<br>Carpenter</p>
+                </div>
+            </div>
+
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Hours</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Carpenter Service - Furniture Repair</td>
+                        <td>3 hrs</td>
+                        <td>₹339/hr</td>
+                        <td>₹1,017</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="invoice-totals">
+                <div class="total-row">
+                    <span class="total-label">Subtotal</span>
+                    <span>₹1,017</span>
+                </div>
+                <div class="total-row">
+                    <span class="total-label">GST (18%)</span>
+                    <span>₹183</span>
+                </div>
+                <div class="total-row grand">
+                    <span>Total</span>
+                    <span>₹1,200</span>
+                </div>
+            </div>
+
+            <p style="font-size:12px;color:var(--muted);text-align:center;">
+                Thank you for choosing Sahayak Services! 🙏
+            </p>
+        </div>
+        <div class="invoice-footer-modal">
+            <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+            <button class="btn-print btn-download" style="background:var(--success);">⬇️ Download PDF</button>
+            <button class="btn-close-inv" onclick="closeInvoiceModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    function switchTab(tab, event) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    function filterTable(tableId, query) {
+        const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+        query = query.toLowerCase();
+        rows.forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+        });
+    }
+
+    function filterByStatus(tableId, status) {
+        const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+        rows.forEach(row => {
+            row.style.display = (!status || row.dataset.status === status) ? '' : 'none';
+        });
+    }
+
+    function openInvoiceModal() {
+        document.getElementById('invoiceModal').classList.add('open');
+    }
+
+    function openViewInvoice() {
+        document.getElementById('invoiceModal').classList.add('open');
+    }
+
+    function closeInvoiceModal() {
+        document.getElementById('invoiceModal').classList.remove('open');
+    }
+
+    window.onclick = function(e) {
+        const modal = document.getElementById('invoiceModal');
+        if (e.target === modal) closeInvoiceModal();
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,386 @@
+{% load static %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+        --sidebar-width: 260px;
+        --sidebar-bg: #ffffff;
+        --sidebar-accent: #1e88e5;
+        --sidebar-text: #555e6d;
+        --sidebar-text-active: #1e88e5;
+        --sidebar-hover-bg: #f0f7ff;
+        --sidebar-active-bg: #e8f3ff;
+        --divider: #e8ecf0;
+    }
+
+    .mgmt-sidebar {
+        width: var(--sidebar-width);
+        min-width: var(--sidebar-width);
+        height: 100vh;
+        background: var(--sidebar-bg);
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        overflow-x: hidden;
+        font-family: 'Inter', sans-serif;
+        border-right: 1px solid var(--divider);
+        scrollbar-width: thin;
+        scrollbar-color: #ddd transparent;
+    }
+
+    /* ===== LOGO ===== */
+    .sidebar-logo {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 20px 0px;
+    }
+
+    .logo-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--sidebar-accent);
+        letter-spacing: -0.3px;
+        margin-top: 6px;
+        text-align: center;
+    }
+
+    /* ===== DIVIDER ===== */
+    .sidebar-divider {
+        height: 1px;
+        background: var(--divider);
+        margin: 6px 0;
+    }
+
+    /* ===== NAV ===== */
+    .sidebar-nav {
+        flex: 1;               /* ✅ takes up all space */
+        padding: 8px 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* ===== SPACER pushes logout to bottom ===== */
+    .sidebar-spacer {
+        flex: 1;               /* ✅ pushes logout down */
+    }
+
+    /* ===== LINKS ===== */
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 11px 20px;
+        text-decoration: none;
+        color: var(--sidebar-text);
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.15s ease;
+        cursor: pointer;
+        border-left: 3px solid transparent;
+    }
+
+    .sidebar-link:hover {
+        background: var(--sidebar-hover-bg);
+        color: var(--sidebar-text-active);
+    }
+
+    .sidebar-link.active {
+        background: var(--sidebar-active-bg);
+        color: var(--sidebar-text-active);
+        border-left: 3px solid var(--sidebar-accent);
+        font-weight: 600;
+    }
+
+    /* ===== DROPDOWN ===== */
+    .dropdown-toggle { user-select: none; }
+
+    .dropdown-arrow {
+        font-size: 12px;
+        color: #aaa;
+        transition: transform 0.2s ease;
+    }
+
+    .dropdown-arrow.open { transform: rotate(180deg); }
+
+    .dropdown-menu {
+        display: none;
+        flex-direction: column;
+        background: #f9fbfd;
+    }
+
+    .dropdown-menu.open { display: flex; }
+
+    /* ===== DROPDOWN ITEMS ===== */
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 20px 10px 36px;
+        text-decoration: none;
+        color: #6b7a8d;
+        font-size: 13.5px;
+        font-weight: 400;
+        transition: all 0.15s ease;
+        cursor: pointer;
+        border-left: 3px solid transparent;
+    }
+
+    .dropdown-item:hover {
+        background: var(--sidebar-hover-bg);
+        color: var(--sidebar-text-active);
+        border-left: 3px solid var(--sidebar-accent);
+        padding-left: 40px; 
+    }
+
+    .dropdown-item.active {
+        color: var(--sidebar-text-active);
+        font-weight: 500;
+    }
+
+    .dropdown-item.sub {
+        padding-left: 52px;
+        font-size: 13px;
+    }
+    .dropdown-item.sub:hover {
+    padding-left: 56px;  
+    background: var(--sidebar-hover-bg);
+    color: var(--sidebar-text-active);
+    border-left: 3px solid var(--sidebar-accent);
+    }   
+
+    /* ===== LOGOUT at bottom ===== */
+    .sidebar-footer {
+        border-top: 1px solid var(--divider);
+        padding: 8px 0;
+    }
+
+    .logout-link {
+        color: #e53935 !important;
+    }
+
+    .logout-link:hover {
+        background: #fff5f5 !important;
+        color: #c62828 !important;
+    }
+
+    .mgmt-main-content {
+        margin-left: var(--sidebar-width);
+        min-height: 100vh;
+        background: #f4f6f8;
+    }
+
+    .mgmt-sidebar::-webkit-scrollbar { width: 4px; }
+    .mgmt-sidebar::-webkit-scrollbar-track { background: transparent; }
+    .mgmt-sidebar::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+</style>
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="mgmt-sidebar" id="mgmtSidebar">
+
+    <!-- Logo -->
+    <div class="sidebar-logo">
+        <img src="{% static 'logo.png' %}" alt="Logo"
+             style="width:120px; height:120px; object-fit:contain; border-radius:8px;">
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <!-- Nav Menu -->
+    <nav class="sidebar-nav">
+
+        <!-- Dashboard -->
+        <a href="{% url 'admin_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+            📊 Dashboard
+        </a>
+
+        <!-- Employee Management Dropdown -->
+        <div class="sidebar-dropdown">
+            <div class="sidebar-link dropdown-toggle" onclick="toggleDropdown('employeeMenu', event)">
+                👥 Employee Management
+                <span class="dropdown-arrow" id="employeeMenu-arrow">▾</span>
+            </div>
+            <div class="dropdown-menu" id="employeeMenu">
+
+                <!-- Manage Users -->
+                <a href="{% url 'manage_users' %}" class="dropdown-item {% if request.resolver_match.url_name == 'manage_users' %}active{% endif %}">
+                    Manage Users
+                </a>
+
+                <!-- Service Partners Sub Dropdown -->
+                <div class="sidebar-dropdown">
+                    <div class="dropdown-item dropdown-toggle" onclick="toggleDropdown('partnersMenu', event)">
+                        Service Partners
+                        <span class="dropdown-arrow" id="partnersMenu-arrow">▾</span>
+                    </div>
+                    <div class="dropdown-menu" id="partnersMenu">
+                        <a href="{% url 'corporate_partners' %}" class="dropdown-item sub {% if request.resolver_match.url_name == 'corporate_partners' %}active{% endif %}">
+                            Corporate Partners
+                        </a>
+                        <a href="{% url 'solo_partners' %}" class="dropdown-item sub {% if request.resolver_match.url_name == 'solo_partners' %}active{% endif %}">
+                            Solo Partners
+                        </a>
+                    </div>
+                     <a href="{% url 'applications' %}" class="dropdown-item {% if request.resolver_match.url_name == 'applications' %}active{% endif %}">
+                    <span style="display:flex; align-items:center;">
+                        <span class="sub-dot"></span> Applications
+                    </span>
+                </a>
+                </div>
+                  <a href="{% url 'access_control' %}" class="dropdown-item {% if request.resolver_match.url_name == 'applications' %}active{% endif %}">
+                    <span style="display:flex; align-items:center;">
+                        <span class="sub-dot"></span> Access Control
+                    </span>
+                </a>
+                </div>
+                
+
+            </div>
+        </div>
+
+        <!-- Bookings -->
+<div class="sidebar-dropdown">
+    <div class="sidebar-link dropdown-toggle" onclick="toggleDropdown('bookingsMenu', event)">
+        📅 Bookings
+        <span class="dropdown-arrow" id="bookingsMenu-arrow">▾</span>
+    </div>
+    <div class="dropdown-menu" id="bookingsMenu">
+
+        <a href="{% url 'bookings' %}" class="dropdown-item {% if request.resolver_match.url_name == 'bookings' %}active{% endif %}">
+            <span style="display:flex;align-items:center;">
+                <span class="sub-dot"></span> All Bookings
+            </span>
+        </a>
+
+        <a href="{% url 'booking_management' %}" class="dropdown-item {% if request.resolver_match.url_name == 'booking_management' %}active{% endif %}">
+            <span style="display:flex;align-items:center;">
+                <span class="sub-dot"></span> Booking Management
+            </span>
+        </a>
+
+        <a href="{% url 'notifications' %}" class="dropdown-item {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
+            <span style="display:flex;align-items:center;">
+                <span class="sub-dot"></span> Notifications
+            </span>
+        </a>
+
+    </div>
+</div>
+
+        <!-- Services -->
+<div class="sidebar-dropdown">
+    <div class="sidebar-link dropdown-toggle" onclick="toggleDropdown('servicesMenu', event)">
+        🛠️ Services
+        <span class="dropdown-arrow" id="servicesMenu-arrow">▾</span>
+    </div>
+    <div class="dropdown-menu" id="servicesMenu">
+
+        <a href="{% url 'services' %}" class="dropdown-item {% if request.resolver_match.url_name == 'services' %}active{% endif %}">
+            <span style="display:flex;align-items:center;">
+                <span class="sub-dot"></span> Manage Services
+            </span>
+        </a>
+
+        <a href="{% url 'rate_plans' %}" class="dropdown-item {% if request.resolver_match.url_name == 'rate_plans' %}active{% endif %}">
+            <span style="display:flex;align-items:center;">
+                <span class="sub-dot"></span> Rate Plans
+            </span>
+        </a>
+
+        <a href="{% url 'payments' %}" class="dropdown-item {% if request.resolver_match.url_name == 'payments' %}active{% endif %}">
+            <span style="display:flex;align-items:center;">
+                <span class="sub-dot"></span> Payments & Billing
+            </span>
+        </a>
+
+        <a href="#" class="dropdown-item {% if request.resolver_match.url_name == 'promotions' %}active{% endif %}">
+            <span style="display:flex;align-items:center;">
+                <span class="sub-dot"></span> Promotions
+            </span>
+        </a>
+
+    </div>
+</div>
+        <!-- Reports -->
+        <a href="{% url 'reports' %}" class="sidebar-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+            📊 Reports
+        </a>
+
+        <!-- Settings -->
+<div class="sidebar-dropdown">
+    <div class="sidebar-link dropdown-toggle" onclick="toggleDropdown('settingsMenu', event)">
+        ⚙️ Settings
+        <span class="dropdown-arrow" id="settingsMenu-arrow">▾</span>
+    </div>
+    <div class="dropdown-menu" id="settingsMenu">
+
+        <a href="{% url 'profile_settings' %}" class="dropdown-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+            <span style="display:flex;align-items:center;">
+                <span class="sub-dot"></span> Profile Settings
+            </span>
+        </a>
+
+        <a href="#" class="dropdown-item {% if request.resolver_match.url_name == 'logs' %}active{% endif %}">
+            <span style="display:flex;align-items:center;">
+                <span class="sub-dot"></span> Logs
+            </span>
+        </a>
+
+        <a href="#" class="dropdown-item {% if request.resolver_match.url_name == 'loyalty' %}active{% endif %}">
+            <span style="display:flex;align-items:center;">
+                <span class="sub-dot"></span> Loyalty
+            </span>
+        </a>
+
+    </div>
+</div>
+
+        <!-- ✅ Spacer pushes logout to bottom -->
+        <div class="sidebar-spacer"></div>
+
+    </nav>
+
+    <!-- ✅ Logout fixed at bottom -->
+    <div class="sidebar-footer">
+        <a href="{% url 'logout' %}" class="sidebar-link logout-link">
+            🔴 Logout
+        </a>
+    </div>
+
+</aside>
+
+<!-- ========== JAVASCRIPT ========== -->
+<script>
+    // ✅ Fixed — event.stopPropagation stops parent from closing
+    function toggleDropdown(menuId, event) {
+        event.stopPropagation();   // ← prevents parent menu from closing
+
+        const menu  = document.getElementById(menuId);
+        const arrow = document.getElementById(menuId + '-arrow');
+        const isOpen = menu.classList.contains('open');
+
+        if (isOpen) {
+            menu.classList.remove('open');
+            arrow.classList.remove('open');
+        } else {
+            menu.classList.add('open');
+            arrow.classList.add('open');
+        }
+    }
+
+    // Auto open active dropdown on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+            if (menu.querySelector('.active')) {
+                menu.classList.add('open');
+                const arrow = document.getElementById(menu.id + '-arrow');
+                if (arrow) arrow.classList.add('open');
+            }
+        });
+    });
+</script>
